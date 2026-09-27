@@ -332,22 +332,55 @@
             position: fixed;
             inset: 0;
             z-index: 50;
-            overflow: hidden;
-            background: linear-gradient(180deg, #3a78c8 0%, #4d8ad8 45%, #6c9fdc 80%, #86b0e0 100%);
+            /* The sky above the scene: its bottom is exactly the colour at the top
+               of the scene's own sky (#5798e2), so the descent joins seamlessly. */
+            background: linear-gradient(180deg, #3f82d4 0%, #4b8cdb 45%, #5394df 80%, #5798e2 100%);
             color: #fbf6ec;
             transition: opacity 1.1s ease;
         }
 
         .loader.done { opacity: 0; pointer-events: none; }
+        .loader-clouds { position: absolute; inset: 0; overflow: hidden; transform-origin: 50% 45%; will-change: transform, opacity; }
+        /* Own layers: the loader keeps moving smoothly even while the page is busy building the scene. */
+        .loader, .loader-center { will-change: transform, opacity; }
+
+        /* The descent: the loader's sky scrolls up and away while the 3D camera
+           tilts down from the sky onto the wheels. The canvas itself never
+           moves or hides, so revealing it costs nothing mid-transition. The
+           loader's sky trails a soft tail that blends into the scene's sky. */
+        .loader::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            height: 60vh;
+            z-index: -1; /* behind the clouds, which may drift over it */
+            background: linear-gradient(180deg, #5798e2 0%, rgba(87, 152, 226, 0.7) 45%, rgba(87, 152, 226, 0) 100%);
+        }
+
+        body.loading { background: #5798e2; }
+        /* Drawn from the start under the (opaque) loader, so the browser's
+           one-time cost of showing it is paid early, out of sight. */
+        body.loading #webgl-container { opacity: 1; transition: none; }
+        .loader.descend { transform: translateY(-160vh); transition: transform 2.6s cubic-bezier(.5, 0, .2, 1), opacity 0.9s ease; }
+        .loader.descend .loader-clouds { overflow: visible; transform: scale(1.9); opacity: 0; transition: transform 2.6s cubic-bezier(.4, 0, .2, 1), opacity 1.4s ease 0.4s; }
+        .loader.descend .loader-center { transform: translate(-50%, -140%); opacity: 0; transition: transform 1.6s ease, opacity 1s ease; }
+        /* Text and icons wait until the view has arrived. */
+        body.loading .ui { opacity: 0 !important; }
 
         .loader .cloud {
             position: absolute;
             left: 0;
             top: var(--y);
             width: var(--w);
-            opacity: var(--o, 1);
+            opacity: 0;
+            will-change: transform;
+            transition: opacity 1.2s ease;
             animation: loader-drift var(--t) linear infinite;
         }
+
+        .loader .cloud.in { opacity: var(--o, 1); }
 
         @keyframes loader-drift {
             from { transform: translateX(var(--x0)) scaleX(var(--sx, 1)); }
@@ -357,29 +390,25 @@
         .loader-center {
             position: absolute;
             left: 50%;
-            top: 44%;
+            top: 46%;
             transform: translate(-50%, -50%);
             text-align: center;
             text-shadow: 0 1px 3px rgba(20, 40, 80, 0.35);
         }
 
-        /* Both scripts share one bottom line; the script sets it, in alignLoader(). */
         .loader-word {
-            position: relative;
-            width: min(90vw, 520px);
-            height: clamp(84px, 11vw, 130px);
-            margin: 0 auto 0.6rem;
             opacity: 0;
             transition: opacity 0.6s ease;
+            white-space: nowrap;
+            font-family: "Noto Serif Tibetan", serif;
+            font-weight: 700;
+            font-size: clamp(40px, 6vw, 72px);
+            line-height: 1.35;
         }
 
         .loader-word.fonts { opacity: 1; }
-        .loader-word > span { position: absolute; left: 0; right: 0; top: var(--top, 0); line-height: var(--lh, normal); text-align: center; white-space: nowrap; }
-        .loader-word > span > span { display: inline-block; }
-        .loader-word .jt { font-family: "Noto Serif Tibetan", serif; font-weight: 700; font-size: clamp(40px, 6vw, 72px); }
-        .loader-word .en { font-size: clamp(28px, 4.2vw, 50px); letter-spacing: 0.01em; font-weight: 500; }
         .loader-word i { font-style: normal; display: inline-block; }
-        .loader-word i b { font-weight: inherit; display: inline-block; animation: loader-wave 1.6s ease-in-out infinite; animation-delay: calc(var(--k) * -0.14s); }
+        .loader-word i b { font-weight: inherit; display: inline-block; will-change: transform; animation: loader-wave 1.6s ease-in-out infinite; animation-delay: calc(var(--k) * -0.14s); }
 
         /* The letters ripple like a flag in the breeze. */
         @keyframes loader-wave {
@@ -387,33 +416,19 @@
             50% { transform: translateY(-0.12em); }
         }
 
-        /* Changing script: the letters drift off to the right; the other script settles in. */
-        .loader-word .a i { animation: loader-out 2.4s cubic-bezier(.45,0,.55,1) infinite; animation-delay: calc(var(--k) * 0.03s); }
-        .loader-word .b i { animation: loader-in 2.4s cubic-bezier(.45,0,.55,1) infinite; animation-delay: calc(var(--k) * 0.02s); }
-        /* 2.4 s cycle: about 0.8 s on each script, 0.3 s to change. */
-        @keyframes loader-out {
-            0%, 33% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
-            45% { opacity: 0; transform: translate(0.3em, -0.08em); filter: blur(2px); }
-            88% { opacity: 0; transform: translate(-0.2em, 0); filter: blur(2px); }
-            100% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
-        }
-        @keyframes loader-in {
-            0%, 37% { opacity: 0; transform: translate(-0.2em, 0); filter: blur(2px); }
-            49%, 83% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
-            95%, 100% { opacity: 0; transform: translate(0.3em, -0.08em); filter: blur(2px); }
+        .loader-sub {
+            display: block;
+            margin-top: 0.2rem;
+            font-size: clamp(14px, 1.5vw, 18px);
+            letter-spacing: 0.01em;
+            opacity: 0;
+            transition: opacity 0.6s ease 0.2s;
         }
 
-        .loader-count {
-            display: block;
-            font-family: "Noto Serif Tibetan", serif;
-            font-size: clamp(22px, 2.8vw, 34px);
-            line-height: 1.3;
-            opacity: 0.92;
-        }
+        .loader-word.fonts + .loader-sub { opacity: 0.92; }
 
         @media (prefers-reduced-motion: reduce) {
-            .loader-word i, .loader-word i b, .loader .cloud { animation: none !important; }
-            .loader-word .b { display: none; }
+            .loader-word i b, .loader .cloud { animation: none !important; }
         }
     </style>
 
@@ -423,23 +438,23 @@
 </head>
 <body>
 
-    <div class="loader" id="loader" role="status" aria-label="Julley. Loading">
+    <div class="loader" id="loader" role="status" aria-label="Julley · Hello · Namaste. Loading">
         <div class="loader-center">
-            <div class="loader-word" id="loader-word" aria-hidden="true">
-                <span class="a"><span class="jt" lang="bo"><i style="--k:0"><b>འ</b></i><i style="--k:1"><b>ཇུ</b></i><i style="--k:2"><b>་</b></i><i style="--k:3"><b>ལེ</b></i><i style="--k:4"><b>ག</b></i><i style="--k:5"><b>ས</b></i><i style="--k:6"><b>་</b></i></span></span>
-                <span class="b"><span class="en"><i style="--k:0"><b>J</b></i><i style="--k:1"><b>u</b></i><i style="--k:2"><b>l</b></i><i style="--k:3"><b>l</b></i><i style="--k:4"><b>e</b></i><i style="--k:5"><b>y</b></i></span></span>
-            </div>
-            <span class="loader-count" id="loader-count" lang="bo" aria-hidden="true">༠</span>
+            <div class="loader-word" id="loader-word" lang="bo" aria-hidden="true"><i style="--k:0"><b>འ</b></i><i style="--k:1"><b>ཇུ</b></i><i style="--k:2"><b>་</b></i><i style="--k:3"><b>ལེ</b></i><i style="--k:4"><b>ག</b></i><i style="--k:5"><b>ས</b></i><i style="--k:6"><b>་</b></i></div>
+            <span class="loader-sub" aria-hidden="true">Julley · Hello · Namaste</span>
         </div>
     </div>
     <script>
-        // The loading screen runs before anything else downloads. The count
-        // eases toward real milestones set by the page as it builds, and
-        // creeps gently between them so it never looks stuck.
+        // The loading screen runs before anything else downloads. Progress
+        // follows real milestones set by the page as it builds; the loader
+        // fades once everything is ready and it has shown for a moment.
         (function () {
             var loader = document.getElementById('loader');
+            var cloudLayer = document.createElement('div');
+            cloudLayer.className = 'loader-clouds';
+            loader.insertBefore(cloudLayer, loader.firstChild);
+            document.body.classList.add('loading');
             var word = document.getElementById('loader-word');
-            var countEl = document.getElementById('loader-count');
 
             // The real clouds from the valley photograph, drifting slowly left to right.
             // [cloud, width (vw), top (%), seconds to cross, head start (0-1), mirrored, far]
@@ -464,69 +479,63 @@
                 if (c[5]) img.style.setProperty('--sx', '-1');
                 if (c[6]) img.style.filter = 'blur(0.5px)';
                 img.style.animationDelay = '-' + (c[4] * t).toFixed(1) + 's';
-                loader.insertBefore(img, loader.firstChild);
+                // Fade in only once fully downloaded, so a cloud is never seen half-drawn.
+                img.onload = function () { img.classList.add('in'); };
+                cloudLayer.appendChild(img);
             });
 
-            // Put both scripts on one bottom line: the bottom of the Tibetan
-            // letters' bodies meets the English baseline.
-            var ctx = document.createElement('canvas').getContext('2d');
-            function alignLoader() {
-                var line = word.clientHeight * 0.62;
-                Array.prototype.forEach.call(word.children, function (outer) {
-                    var inner = outer.firstElementChild, cs = getComputedStyle(inner);
-                    ctx.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
-                    var m = ctx.measureText(inner.textContent);
-                    var body = ctx.measureText(/[\u0F00-\u0FFF]/.test(inner.textContent) ? 'ལ' : 'Julle');
-                    outer.style.setProperty('--lh', (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent) + 'px');
-                    outer.style.setProperty('--top', (line - m.fontBoundingBoxAscent - body.actualBoundingBoxDescent) + 'px');
-                });
-            }
-            // Show the word once its fonts are in, so it never flashes in a fallback.
-            var shown = false;
-            // Once shown, stay long enough for the Ladakhi and then the English
-            // to appear, even on a fast connection.
-            var seenBoth = Infinity;
-            function showWord() { if (shown) return; shown = true; alignLoader(); word.classList.add('fonts'); restartWord(); seenBoth = performance.now() + 2000; }
-            // Start the script change from the Ladakhi the moment the word appears.
-            function restartWord() {
-                word.querySelectorAll('i').forEach(function (el) { el.style.animation = 'none'; });
-                void word.offsetWidth;
-                word.querySelectorAll('i').forEach(function (el) { el.style.animation = ''; });
-            }
+            // Show the word once its font has loaded, so it never flashes in a fallback.
+            var shown = false, minUntil = Infinity;
+            function showWord() { if (shown) return; shown = true; word.classList.add('fonts'); minUntil = performance.now() + 1400; }
             if (document.fonts && document.fonts.load) {
-                Promise.all([
-                    document.fonts.load('700 60px "Noto Serif Tibetan"', 'འཇུ་ལེགས་༠༡༢༣༤༥༦༧༨༩'),
-                    document.fonts.load('500 40px "Shippori Mincho"', 'Julley!')
-                ]).then(showWord, showWord);
+                document.fonts.load('700 60px "Noto Serif Tibetan"', 'འཇུ་ལེགས་').then(showWord, showWord);
                 setTimeout(showWord, 2500);
             } else showWord();
-            window.addEventListener('resize', alignLoader);
 
             // Progress: `target` is the last real milestone reached, `cap` how far
             // the count may creep while waiting for the next one.
             var shownValue = 0, target = 0, cap = 12, finished = null, last = performance.now();
-            function tib(n) { return String(n).replace(/\d/g, function (d) { return String.fromCharCode(0x0F20 + Number(d)); }); }
             function tick(now) {
                 var dt = Math.min(0.1, (now - last) / 1000); last = now;
                 if (target < cap) target = Math.min(cap, target + dt * 2.5);
                 shownValue += (target - shownValue) * (1 - Math.exp(-dt * 3.5));
                 if (target >= 100 && 100 - shownValue < 0.6) shownValue = 100;
-                countEl.textContent = tib(Math.floor(shownValue));
-                if (shownValue >= 100 && finished && now >= seenBoth) {
-                    loader.classList.add('done');
-                    var cb = finished; finished = null; cb();
-                    setTimeout(function () { loader.remove(); }, 1300);
+                if (shownValue >= 100 && finished && now >= minUntil) {
+                    var cb = finished; finished = null;
+                    var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    // Reveal the scene underneath first, while the loader still covers
+                    // it: the browser's one-time cost of showing it lands out of sight.
+                    cb.ready();
+                    waitFrames(12, function () {
+                        if (still) {
+                            loader.classList.add('done');
+                        } else {
+                            document.body.classList.add('descending');
+                            loader.classList.add('descend');
+                            cb.descend();
+                        }
+                        // Arrived: the wheels welcome you, and the loader goes.
+                        setTimeout(function () {
+                            cb.arrive();
+                            loader.classList.add('done');
+                            document.body.classList.remove('loading', 'descending');
+                            setTimeout(function () { loader.remove(); }, 1000);
+                        }, still ? 400 : 2400);
+                    });
                     return;
                 }
                 requestAnimationFrame(tick);
             }
             requestAnimationFrame(tick);
 
+            // Wait for `n` rendered frames, so layout and first paints are done.
+            function waitFrames(n, fn) { if (n <= 0) return fn(); requestAnimationFrame(function () { waitFrames(n - 1, fn); }); }
+
             window.pageLoader = {
                 // A real step finished: move to at least `value`, and allow creeping toward `nextCap`.
                 step: function (value, nextCap) { target = Math.max(target, value); cap = Math.max(cap, nextCap || value); },
-                // Everything is ready: count up to ༡༠༠, then fade away and call `done`.
-                finish: function (done) { target = 100; cap = 100; finished = done || function () {}; }
+                // Everything is ready: reveal the scene (`ready`), descend into it, then `arrive`.
+                finish: function (ready, arrive, descend) { target = 100; cap = 100; finished = { ready: ready || function () {}, arrive: arrive || function () {}, descend: descend || function () {} }; }
             };
         })();
     </script>
@@ -700,13 +709,16 @@
             }
         }
 
-        function blur(src, sigma) {
+        // Yields between passes so the page (and the loader) stay responsive.
+        async function blur(src, sigma) {
             const a = Float32Array.from(src);
             const b = new Float32Array(src.length);
             for (const r of boxSizesForGauss(sigma, 3)) {
                 if (r < 1) continue;
                 boxH(a, b, r);
+                await nextFrame();
                 boxV(b, a, r);
+                await nextFrame();
             }
             return a;
         }
@@ -973,7 +985,8 @@
                     drawWrapped(tctx, () => drawMantra(tctx, layout));
                 }
             }
-            const textMask = blur(readMask(textCanvas), 3.2);
+            const textMask = await blur(readMask(textCanvas), 3.2);
+            await nextFrame();
             await nextFrame();
 
             // Raised line work: cartouche frames, stems, arcade.
@@ -992,7 +1005,8 @@
             }
             lctx.lineWidth = 6.5;
             drawWrapped(lctx, () => traceArches(lctx));
-            const lineMask = blur(readMask(lineCanvas), 1.8);
+            const lineMask = await blur(readMask(lineCanvas), 1.8);
+            await nextFrame();
 
             await nextFrame();
             for (let i = 0; i < h.length; i++) {
@@ -1037,13 +1051,17 @@
 
         async function buildDrumMaps(h) {
             await nextFrame();
-            const hs = blur(h, 0.9);  // normals
-            const hb = blur(h, 14);   // broad context, for grime and polish
-            const hd = blur(h, 2.5);  // displacement
+            const hs = await blur(h, 0.9);  // normals
+            await nextFrame();
+            const hb = await blur(h, 14);   // broad context, for grime and polish
+            await nextFrame();
+            const hd = await blur(h, 2.5);  // displacement
+            await nextFrame();
 
             // Tarnish noise at quarter resolution, sampled up.
             const NW = TW / 4, NH = Math.round(TH / 4);
             const blotch = fbm(NW, NH, 6, 4, 11);
+            await nextFrame();
             const grime = fbm(NW, NH, 48, 3, 23);
             await nextFrame();
 
@@ -1059,6 +1077,7 @@
             const k = PX * 0.5;
 
             for (let y = 0; y < TH; y++) {
+                if (y % 48 === 47) await nextFrame();
                 const row = y * TW;
                 const up = Math.max(0, y - 1) * TW, down = Math.min(TH - 1, y + 1) * TW;
                 const v = (y + 0.5) / TH;
@@ -1599,6 +1618,13 @@
             out.pos.y -= lift;
         }
 
+        // Arriving from the loading screen: the camera starts looking up into the
+        // sky and tilts down onto the wheels as the loader's sky scrolls away.
+        const intro = { k: 1, running: false, duration: 2.6 };
+        const introEase = x => { // matches the loader's cubic-bezier(.5, 0, .2, 1), roughly
+            return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+        };
+
         function placeCamera(dt) {
             camMove.t = Math.min(1, camMove.t + dt / camMove.duration);
             if (infoPending && stage === 0 && camMove.t > 0.9) setInfo(true);
@@ -1606,6 +1632,12 @@
             viewFor(stage, camTo);
             camLook.lerpVectors(camFrom.look, camTo.look, k);
             camera.position.lerpVectors(camFrom.pos, camTo.pos, k);
+            if (intro.running) intro.k = Math.max(0, intro.k - dt / intro.duration);
+            if (intro.k > 0) {
+                const up = 1 - introEase(1 - intro.k);
+                camLook.y += 9 * up;
+                camera.position.y += 2.5 * up;
+            }
             camera.lookAt(camLook);
         }
         viewFor(0, camFrom);
@@ -2125,7 +2157,7 @@
             };
         }
         // The centre wheel; the side wheels are added once the drum is built.
-        const wheels = [makeWheelState(0, wheelGroup, wobbleGroup, bellPivot, clapperPivot, 0, -1.1, 1)];
+        const wheels = [makeWheelState(0, wheelGroup, wobbleGroup, bellPivot, clapperPivot, 0, 0, 1)];
         const activeWheels = () => wheels.filter(w => w.active);
 
         // Where on the drum's curved face a screen x falls, as an angle. A point
@@ -2942,7 +2974,7 @@
             // Background, softly out of focus, more so up close.
             const bgBlur = renderer.getDrawingBufferSize(new THREE.Vector2()).y / 2 * (0.0026 + 0.0018 * closeness);
             renderer.setRenderTarget(bgA);
-            renderer.setClearColor(0x7fa8dc, 1);
+            renderer.setClearColor(0x5798e2, 1); // the sky above the photo, seen during the descent
             renderer.clear();
             renderer.render(bgScene, camera);
             blurTarget(bgA, bgB, bgBlur, 2);
@@ -2976,7 +3008,7 @@
         // Build everything once the Tibetan font is available, then fade in.
         // ---------------------------------------------------------------
         (async function init() {
-            const loader = window.pageLoader || { step() {}, finish(done) { done(); } };
+            const loader = window.pageLoader || { step() {}, finish(ready, arrive, descend) { ready(); descend(); arrive(); } };
             loader.step(18, 32); // the 3D engine has arrived
             const photo = loadPhoto().then(img => { loader.step(40, 55); return img; }).catch(err => {
                 console.warn('Could not load the valley photograph.', err);
@@ -3056,6 +3088,15 @@
             loader.finish(() => {
                 container.classList.add('ready');
                 document.body.classList.add('ready');
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) intro.k = 0;
+            }, () => {
+                // The wheels welcome you: they start turning one after another, right
+                // to left, as if someone walking past gave each a push.
+                activeWheels().slice().sort((a, b) => b.x - a.x).forEach((w, i) => {
+                    setTimeout(() => { if (!w.phys.dragging && w.phys.omega === 0) w.phys.omega = -2.3; }, i * 550);
+                });
+            }, () => {
+                intro.running = true;
             });
         })();
 
