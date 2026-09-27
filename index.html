@@ -377,7 +377,7 @@
         .loader-word > span { position: absolute; left: 0; right: 0; top: var(--top, 0); line-height: var(--lh, normal); text-align: center; white-space: nowrap; }
         .loader-word > span > span { display: inline-block; }
         .loader-word .jt { font-family: "Noto Serif Tibetan", serif; font-weight: 700; font-size: clamp(40px, 6vw, 72px); }
-        .loader-word .en { font-size: clamp(28px, 4.2vw, 50px); letter-spacing: 0.08em; font-weight: 500; }
+        .loader-word .en { font-size: clamp(28px, 4.2vw, 50px); letter-spacing: 0.01em; font-weight: 500; }
         .loader-word i { font-style: normal; display: inline-block; }
         .loader-word i b { font-weight: inherit; display: inline-block; animation: loader-wave 1.6s ease-in-out infinite; animation-delay: calc(var(--k) * -0.14s); }
 
@@ -388,18 +388,19 @@
         }
 
         /* Changing script: the letters drift off to the right; the other script settles in. */
-        .loader-word .a i { animation: loader-out 5s cubic-bezier(.45,0,.55,1) infinite; animation-delay: calc(var(--k) * 0.05s); }
-        .loader-word .b i { animation: loader-in 5s cubic-bezier(.45,0,.55,1) infinite; animation-delay: calc(var(--k) * 0.03s); }
+        .loader-word .a i { animation: loader-out 2.4s cubic-bezier(.45,0,.55,1) infinite; animation-delay: calc(var(--k) * 0.03s); }
+        .loader-word .b i { animation: loader-in 2.4s cubic-bezier(.45,0,.55,1) infinite; animation-delay: calc(var(--k) * 0.02s); }
+        /* 2.4 s cycle: about 0.8 s on each script, 0.3 s to change. */
         @keyframes loader-out {
-            0%, 40% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
-            50% { opacity: 0; transform: translate(0.3em, -0.08em); filter: blur(2px); }
-            89% { opacity: 0; transform: translate(-0.2em, 0); filter: blur(2px); }
-            99%, 100% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
+            0%, 33% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
+            45% { opacity: 0; transform: translate(0.3em, -0.08em); filter: blur(2px); }
+            88% { opacity: 0; transform: translate(-0.2em, 0); filter: blur(2px); }
+            100% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
         }
         @keyframes loader-in {
-            0%, 43% { opacity: 0; transform: translate(-0.2em, 0); filter: blur(2px); }
-            53%, 86% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
-            96%, 100% { opacity: 0; transform: translate(0.3em, -0.08em); filter: blur(2px); }
+            0%, 37% { opacity: 0; transform: translate(-0.2em, 0); filter: blur(2px); }
+            49%, 83% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
+            95%, 100% { opacity: 0; transform: translate(0.3em, -0.08em); filter: blur(2px); }
         }
 
         .loader-count {
@@ -422,11 +423,11 @@
 </head>
 <body>
 
-    <div class="loader" id="loader" role="status" aria-label="Julley! Loading">
+    <div class="loader" id="loader" role="status" aria-label="Julley. Loading">
         <div class="loader-center">
             <div class="loader-word" id="loader-word" aria-hidden="true">
                 <span class="a"><span class="jt" lang="bo"><i style="--k:0"><b>འ</b></i><i style="--k:1"><b>ཇུ</b></i><i style="--k:2"><b>་</b></i><i style="--k:3"><b>ལེ</b></i><i style="--k:4"><b>ག</b></i><i style="--k:5"><b>ས</b></i><i style="--k:6"><b>་</b></i></span></span>
-                <span class="b"><span class="en"><i style="--k:0"><b>J</b></i><i style="--k:1"><b>u</b></i><i style="--k:2"><b>l</b></i><i style="--k:3"><b>l</b></i><i style="--k:4"><b>e</b></i><i style="--k:5"><b>y</b></i><i style="--k:6"><b>!</b></i></span></span>
+                <span class="b"><span class="en"><i style="--k:0"><b>J</b></i><i style="--k:1"><b>u</b></i><i style="--k:2"><b>l</b></i><i style="--k:3"><b>l</b></i><i style="--k:4"><b>e</b></i><i style="--k:5"><b>y</b></i></span></span>
             </div>
             <span class="loader-count" id="loader-count" lang="bo" aria-hidden="true">༠</span>
         </div>
@@ -482,7 +483,16 @@
             }
             // Show the word once its fonts are in, so it never flashes in a fallback.
             var shown = false;
-            function showWord() { if (shown) return; shown = true; alignLoader(); word.classList.add('fonts'); }
+            // Once shown, stay long enough for the Ladakhi and then the English
+            // to appear, even on a fast connection.
+            var seenBoth = Infinity;
+            function showWord() { if (shown) return; shown = true; alignLoader(); word.classList.add('fonts'); restartWord(); seenBoth = performance.now() + 2000; }
+            // Start the script change from the Ladakhi the moment the word appears.
+            function restartWord() {
+                word.querySelectorAll('i').forEach(function (el) { el.style.animation = 'none'; });
+                void word.offsetWidth;
+                word.querySelectorAll('i').forEach(function (el) { el.style.animation = ''; });
+            }
             if (document.fonts && document.fonts.load) {
                 Promise.all([
                     document.fonts.load('700 60px "Noto Serif Tibetan"', 'འཇུ་ལེགས་༠༡༢༣༤༥༦༧༨༩'),
@@ -502,7 +512,7 @@
                 shownValue += (target - shownValue) * (1 - Math.exp(-dt * 3.5));
                 if (target >= 100 && 100 - shownValue < 0.6) shownValue = 100;
                 countEl.textContent = tib(Math.floor(shownValue));
-                if (shownValue >= 100 && finished) {
+                if (shownValue >= 100 && finished && now >= seenBoth) {
                     loader.classList.add('done');
                     var cb = finished; finished = null; cb();
                     setTimeout(function () { loader.remove(); }, 1300);
