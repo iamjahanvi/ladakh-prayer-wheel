@@ -1,0 +1,3055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Digital Artifact: Prayer Wheel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tibetan:wght@400;700&family=Shippori+Mincho:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sky-top: #1d56b8;
+            --sky-bottom: #cfdcea;
+            --text-color: #f3eee4;
+            --ink-shadow: 0 1px 3px rgba(10, 16, 30, 0.55), 0 0 18px rgba(10, 16, 30, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        html { overflow: hidden; }
+
+        body {
+            background: linear-gradient(180deg, var(--sky-top) 0%, #3279d4 30%, #86b4e6 55%, var(--sky-bottom) 70%, #8e877c 100%);
+            /* The visible height, excluding a phone browser's toolbars. */
+            height: 100vh;
+            height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: "Shippori Mincho", "Noto Serif JP", "Times New Roman", serif;
+            color: var(--text-color);
+            position: relative;
+        }
+
+        #webgl-container {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            cursor: grab;
+            touch-action: none;
+            opacity: 0;
+            transition: opacity 1.8s ease;
+        }
+
+        #webgl-container.ready { opacity: 1; }
+        #webgl-container:active { cursor: grabbing; }
+        #webgl-container.pointing { cursor: pointer; }
+
+        .noise-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.16;
+            mix-blend-mode: multiply;
+        }
+
+        .noise-overlay svg { width: 100%; height: 100%; }
+
+        /* Keeps text legible over the bright landscape. */
+        .scrim {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            background:
+                linear-gradient(to top, rgba(12, 16, 24, 0.5) 0%, rgba(12, 16, 24, 0) 32%),
+                linear-gradient(to right, rgba(12, 18, 34, 0.28) 0%, rgba(12, 18, 34, 0) 22%),
+                linear-gradient(to left, rgba(12, 18, 34, 0.24) 0%, rgba(12, 18, 34, 0) 18%);
+        }
+
+        .ui {
+            opacity: 0;
+            transition: opacity 1.6s ease 0.6s;
+        }
+
+        body.ready .ui { opacity: 1; }
+
+        /* Turn count */
+        .turn-count {
+            position: absolute;
+            right: 3rem;
+            bottom: 3rem;
+            z-index: 5;
+            text-align: right;
+            text-shadow: var(--ink-shadow);
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .turn-count .tib {
+            display: block;
+            font-family: "Noto Serif Tibetan", serif;
+            font-size: 1.6rem;
+            line-height: 1.3;
+            transition: transform 0.5s ease;
+        }
+
+        .turn-count .tib.pop { animation: count-pop 0.9s ease; }
+
+        @keyframes count-pop {
+            0% { transform: scale(1); }
+            35% { transform: scale(1.25); }
+            100% { transform: scale(1); }
+        }
+
+        .turn-count .lat {
+            display: block;
+            font-size: 0.62rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Chapter text */
+        .chapter {
+            position: absolute;
+            left: 3rem;
+            bottom: 3rem;
+            z-index: 5;
+            max-width: 360px;
+            text-shadow: var(--ink-shadow);
+            transition: opacity 0.6s ease;
+        }
+
+        .chapter.fading { opacity: 0; }
+        /* Text only: touches and scrolls pass through to the scene below. */
+        .chapter { pointer-events: none; }
+
+
+        .chapter h2 {
+            font-size: 1.15rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.04em;
+        }
+
+        .chapter h2 .tib {
+            font-family: "Noto Serif Tibetan", serif;
+            font-weight: 400;
+            margin-right: 0.4rem;
+        }
+
+        .chapter p {
+            font-size: 0.8rem;
+            line-height: 1.75;
+            opacity: 0.92;
+        }
+
+        .chapter p + p { margin-top: 0.5rem; }
+
+        .chapter .swatch {
+            display: inline-block;
+            width: 0.7rem;
+            height: 0.7rem;
+            border-radius: 50%;
+            vertical-align: -0.05rem;
+            margin-right: 0.35rem;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+        }
+
+        .chapter .syllable-big {
+            font-family: "Noto Serif Tibetan", serif;
+            font-size: 2.2rem;
+            line-height: 1.9;
+            display: block;
+            margin-top: 0.4rem;
+        }
+
+
+
+
+        /* Icon buttons, top right: sound and details, one style for both */
+        .corner {
+            position: absolute;
+            top: 1.4rem;
+            right: 2.2rem;
+            z-index: 7;
+            display: flex;
+            gap: 0.6rem;
+        }
+
+        .icon-btn {
+            all: unset;
+            box-sizing: border-box;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid rgba(243, 238, 228, 0.85);
+            color: var(--text-color);
+            background: rgba(20, 24, 32, 0.18);
+            box-shadow: 0 1px 6px rgba(10, 16, 30, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s ease, color 0.3s ease, opacity 0.5s ease;
+        }
+
+        .icon-btn svg { width: 16px; height: 16px; display: block; filter: drop-shadow(0 1px 1px rgba(10, 14, 24, 0.45)); }
+        .icon-btn:hover { background: rgba(243, 238, 228, 0.16); }
+        .icon-btn:focus-visible { outline: 1px solid var(--text-color); outline-offset: 3px; }
+        .icon-btn[aria-pressed="true"] { background: var(--text-color); color: #1c1f26; }
+        .icon-btn[aria-pressed="true"] svg { filter: none; }
+
+        .sound .slash { display: none; }
+        .sound.muted .slash { display: block; }
+        .sound.muted .waves { display: none; }
+        .info-i { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 1.05rem; line-height: 1; text-shadow: var(--ink-shadow); }
+
+        /* Details overlay: the scene falls into warm shadow and pools of
+           butter-lamp light pick out each part. */
+        .info-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.7s ease;
+        }
+
+        .info-layer.on { opacity: 1; }
+        body.info-on .chapter { opacity: 0 !important; }
+        body.ccw-on .chapter { opacity: 0 !important; }
+        body.info-on #webgl-container { cursor: default; }
+        body.info-on .turn-count { opacity: 0 !important; }
+
+        .info-lines {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .info-lines .spoke { stroke: rgba(243, 238, 228, 0.85); stroke-width: 1; }
+
+        .info-label {
+            position: absolute;
+            width: min(17vw, 250px);
+            font-size: 0.62rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            line-height: 1.6;
+            text-shadow: var(--ink-shadow);
+            transition: opacity 0.45s ease;
+        }
+
+        .info-label.off { opacity: 0; }
+
+        .info-label small {
+            display: block;
+            margin-top: 0.15rem;
+            font-size: 0.8rem;
+            letter-spacing: 0;
+            text-transform: none;
+            line-height: 1.55;
+            opacity: 0.94;
+        }
+
+        .info-label .tib { font-family: "Noto Serif Tibetan", serif; white-space: nowrap; }
+
+        /* Phones: one part at a time */
+        .info-stepper {
+            position: absolute;
+            left: 50%;
+            bottom: calc(2.2rem + env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.62rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            text-shadow: var(--ink-shadow);
+        }
+
+        .info-stepper.show { display: flex; }
+        .info-layer.on .info-stepper { pointer-events: auto; }
+        .info-stepper button { width: 38px; height: 38px; font-family: Georgia, serif; font-size: 1.2rem; }
+
+        /* After a counter-clockwise turn: a short caption under the wheels */
+        .ccw-note {
+            position: absolute;
+            left: 50%;
+            top: 76%;
+            transform: translateX(-50%);
+            width: min(30vw, 430px);
+            z-index: 6;
+            text-align: center;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            text-shadow: var(--ink-shadow);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .ccw-note.show { opacity: 1; }
+        .ccw-note .tib { font-family: "Noto Serif Tibetan", serif; }
+
+        .ccw-arc {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        .ccw-arc path { fill: none; stroke: var(--text-color); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 3px rgba(10, 14, 24, 0.6)); }
+
+        @media (max-width: 720px) {
+            .turn-count { right: auto; left: 1.2rem; bottom: auto; top: calc(1.35rem + env(safe-area-inset-top)); text-align: left; }
+            .turn-count .tib { font-size: 1.3rem; }
+            .chapter { left: 1.2rem; right: 1.2rem; bottom: calc(1.6rem + env(safe-area-inset-bottom)); max-width: none; }
+            .chapter p { font-size: 0.74rem; }
+            .ccw-note { width: calc(100vw - 2.4rem); font-size: 0.85rem; }
+            .corner { top: 1.2rem; right: 1.2rem; }
+            .info-label { width: calc(100vw - 2.4rem); }
+            .info-label small { font-size: 0.82rem; }
+        }
+
+        /* ---------- Loading screen: Julley over the sky, with the real clouds ---------- */
+        .loader {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            overflow: hidden;
+            background: linear-gradient(180deg, #3a78c8 0%, #4d8ad8 45%, #6c9fdc 80%, #86b0e0 100%);
+            color: #fbf6ec;
+            transition: opacity 1.1s ease;
+        }
+
+        .loader.done { opacity: 0; pointer-events: none; }
+
+        .loader .cloud {
+            position: absolute;
+            left: 0;
+            top: var(--y);
+            width: var(--w);
+            opacity: var(--o, 1);
+            animation: loader-drift var(--t) linear infinite;
+        }
+
+        @keyframes loader-drift {
+            from { transform: translateX(var(--x0)) scaleX(var(--sx, 1)); }
+            to { transform: translateX(calc(var(--x0) + 150vw)) scaleX(var(--sx, 1)); }
+        }
+
+        .loader-center {
+            position: absolute;
+            left: 50%;
+            top: 44%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            text-shadow: 0 1px 3px rgba(20, 40, 80, 0.35);
+        }
+
+        /* Both scripts share one bottom line; the script sets it, in alignLoader(). */
+        .loader-word {
+            position: relative;
+            width: min(90vw, 520px);
+            height: clamp(84px, 11vw, 130px);
+            margin: 0 auto 0.6rem;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .loader-word.fonts { opacity: 1; }
+        .loader-word > span { position: absolute; left: 0; right: 0; top: var(--top, 0); line-height: var(--lh, normal); text-align: center; white-space: nowrap; }
+        .loader-word > span > span { display: inline-block; }
+        .loader-word .jt { font-family: "Noto Serif Tibetan", serif; font-weight: 700; font-size: clamp(40px, 6vw, 72px); }
+        .loader-word .en { font-size: clamp(28px, 4.2vw, 50px); letter-spacing: 0.08em; font-weight: 500; }
+        .loader-word i { font-style: normal; display: inline-block; }
+        .loader-word i b { font-weight: inherit; display: inline-block; animation: loader-wave 1.6s ease-in-out infinite; animation-delay: calc(var(--k) * -0.14s); }
+
+        /* The letters ripple like a flag in the breeze. */
+        @keyframes loader-wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-0.12em); }
+        }
+
+        /* Changing script: the letters drift off to the right; the other script settles in. */
+        .loader-word .a i { animation: loader-out 5s cubic-bezier(.45,0,.55,1) infinite; animation-delay: calc(var(--k) * 0.05s); }
+        .loader-word .b i { animation: loader-in 5s cubic-bezier(.45,0,.55,1) infinite; animation-delay: calc(var(--k) * 0.03s); }
+        @keyframes loader-out {
+            0%, 40% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
+            50% { opacity: 0; transform: translate(0.3em, -0.08em); filter: blur(2px); }
+            89% { opacity: 0; transform: translate(-0.2em, 0); filter: blur(2px); }
+            99%, 100% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
+        }
+        @keyframes loader-in {
+            0%, 43% { opacity: 0; transform: translate(-0.2em, 0); filter: blur(2px); }
+            53%, 86% { opacity: 1; transform: translate(0, 0); filter: blur(0); }
+            96%, 100% { opacity: 0; transform: translate(0.3em, -0.08em); filter: blur(2px); }
+        }
+
+        .loader-count {
+            display: block;
+            font-family: "Noto Serif Tibetan", serif;
+            font-size: clamp(22px, 2.8vw, 34px);
+            line-height: 1.3;
+            opacity: 0.92;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .loader-word i, .loader-word i b, .loader .cloud { animation: none !important; }
+            .loader-word .b { display: none; }
+        }
+    </style>
+
+    <script type="importmap">
+        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js" } }
+    </script>
+</head>
+<body>
+
+    <div class="loader" id="loader" role="status" aria-label="Julley! Loading">
+        <div class="loader-center">
+            <div class="loader-word" id="loader-word" aria-hidden="true">
+                <span class="a"><span class="jt" lang="bo"><i style="--k:0"><b>འ</b></i><i style="--k:1"><b>ཇུ</b></i><i style="--k:2"><b>་</b></i><i style="--k:3"><b>ལེ</b></i><i style="--k:4"><b>ག</b></i><i style="--k:5"><b>ས</b></i><i style="--k:6"><b>་</b></i></span></span>
+                <span class="b"><span class="en"><i style="--k:0"><b>J</b></i><i style="--k:1"><b>u</b></i><i style="--k:2"><b>l</b></i><i style="--k:3"><b>l</b></i><i style="--k:4"><b>e</b></i><i style="--k:5"><b>y</b></i><i style="--k:6"><b>!</b></i></span></span>
+            </div>
+            <span class="loader-count" id="loader-count" lang="bo" aria-hidden="true">༠</span>
+        </div>
+    </div>
+    <script>
+        // The loading screen runs before anything else downloads. The count
+        // eases toward real milestones set by the page as it builds, and
+        // creeps gently between them so it never looks stuck.
+        (function () {
+            var loader = document.getElementById('loader');
+            var word = document.getElementById('loader-word');
+            var countEl = document.getElementById('loader-count');
+
+            // The real clouds from the valley photograph, drifting slowly left to right.
+            // [cloud, width (vw), top (%), seconds to cross, head start (0-1), mirrored, far]
+            var CLOUDS = [
+                [0, 30, 2, 110, 0.15], [1, 17, 70, 90, 0.55], [2, 20, 78, 100, 0.05], [3, 15, 14, 80, 0.7],
+                [4, 13, 86, 75, 0.35], [5, 11, 6, 70, 0.9], [6, 8, 24, 65, 0.45],
+                [0, 22, 72, 120, 0.8, 1], [2, 16, 4, 95, 0.4, 1], [1, 12, 88, 85, 0.95, 1], [3, 11, 20, 78, 0.2, 1],
+                [1, 19, 0, 105, 0.3], [5, 14, 76, 88, 0.62, 1], [4, 16, 12, 98, 0.85], [6, 12, 82, 82, 0.12, 1],
+                [5, 7, 10, 150, 0.6, 1, 1], [6, 6, 27, 140, 0.1, 0, 1], [4, 7, 66, 160, 0.5, 1, 1], [3, 6, 92, 145, 0.75, 0, 1]
+            ];
+            CLOUDS.forEach(function (c) {
+                var img = document.createElement('img');
+                var t = c[3] * 2.2;
+                img.src = 'assets/clouds/cloud' + c[0] + '.png';
+                img.className = 'cloud';
+                img.alt = '';
+                img.style.setProperty('--w', c[1] + 'vw');
+                img.style.setProperty('--y', c[2] + '%');
+                img.style.setProperty('--t', t + 's');
+                img.style.setProperty('--x0', (-c[1] - 5) + 'vw');
+                img.style.setProperty('--o', c[6] ? '0.55' : (0.75 + 0.25 * (c[1] / 30)).toFixed(2));
+                if (c[5]) img.style.setProperty('--sx', '-1');
+                if (c[6]) img.style.filter = 'blur(0.5px)';
+                img.style.animationDelay = '-' + (c[4] * t).toFixed(1) + 's';
+                loader.insertBefore(img, loader.firstChild);
+            });
+
+            // Put both scripts on one bottom line: the bottom of the Tibetan
+            // letters' bodies meets the English baseline.
+            var ctx = document.createElement('canvas').getContext('2d');
+            function alignLoader() {
+                var line = word.clientHeight * 0.62;
+                Array.prototype.forEach.call(word.children, function (outer) {
+                    var inner = outer.firstElementChild, cs = getComputedStyle(inner);
+                    ctx.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+                    var m = ctx.measureText(inner.textContent);
+                    var body = ctx.measureText(/[\u0F00-\u0FFF]/.test(inner.textContent) ? 'ལ' : 'Julle');
+                    outer.style.setProperty('--lh', (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent) + 'px');
+                    outer.style.setProperty('--top', (line - m.fontBoundingBoxAscent - body.actualBoundingBoxDescent) + 'px');
+                });
+            }
+            // Show the word once its fonts are in, so it never flashes in a fallback.
+            var shown = false;
+            function showWord() { if (shown) return; shown = true; alignLoader(); word.classList.add('fonts'); }
+            if (document.fonts && document.fonts.load) {
+                Promise.all([
+                    document.fonts.load('700 60px "Noto Serif Tibetan"', 'འཇུ་ལེགས་༠༡༢༣༤༥༦༧༨༩'),
+                    document.fonts.load('500 40px "Shippori Mincho"', 'Julley!')
+                ]).then(showWord, showWord);
+                setTimeout(showWord, 2500);
+            } else showWord();
+            window.addEventListener('resize', alignLoader);
+
+            // Progress: `target` is the last real milestone reached, `cap` how far
+            // the count may creep while waiting for the next one.
+            var shownValue = 0, target = 0, cap = 12, finished = null, last = performance.now();
+            function tib(n) { return String(n).replace(/\d/g, function (d) { return String.fromCharCode(0x0F20 + Number(d)); }); }
+            function tick(now) {
+                var dt = Math.min(0.1, (now - last) / 1000); last = now;
+                if (target < cap) target = Math.min(cap, target + dt * 2.5);
+                shownValue += (target - shownValue) * (1 - Math.exp(-dt * 3.5));
+                if (target >= 100 && 100 - shownValue < 0.6) shownValue = 100;
+                countEl.textContent = tib(Math.floor(shownValue));
+                if (shownValue >= 100 && finished) {
+                    loader.classList.add('done');
+                    var cb = finished; finished = null; cb();
+                    setTimeout(function () { loader.remove(); }, 1300);
+                    return;
+                }
+                requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+
+            window.pageLoader = {
+                // A real step finished: move to at least `value`, and allow creeping toward `nextCap`.
+                step: function (value, nextCap) { target = Math.max(target, value); cap = Math.max(cap, nextCap || value); },
+                // Everything is ready: count up to ༡༠༠, then fade away and call `done`.
+                finish: function (done) { target = 100; cap = 100; finished = done || function () {}; }
+            };
+        })();
+    </script>
+
+    <div id="webgl-container"></div>
+    <div class="scrim"></div>
+
+    <div class="noise-overlay">
+        <svg xmlns="http://www.w3.org/2000/svg">
+            <filter id="noiseFilter">
+                <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"></feTurbulence>
+                <feColorMatrix type="matrix" values="1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.15 0"></feColorMatrix>
+            </filter>
+            <rect width="100%" height="100%" filter="url(#noiseFilter)"></rect>
+        </svg>
+    </div>
+
+    <div class="info-layer" id="info-layer" aria-hidden="true">
+        <svg class="info-lines" id="info-lines">
+            <defs>
+                <filter id="lamp-soft" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur id="lamp-blur" stdDeviation="26"/></filter>
+                <mask id="lamp-holes" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
+                    <rect width="100%" height="100%" fill="#fff"/>
+                    <g filter="url(#lamp-soft)" fill="#000" id="lamp-hole-group"></g>
+                </mask>
+                <radialGradient id="lamp-glow"><stop offset="0" stop-color="#ffb347" stop-opacity="0.5"/><stop offset="0.6" stop-color="#ff9a33" stop-opacity="0.16"/><stop offset="1" stop-color="#ff8a1f" stop-opacity="0"/></radialGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="rgba(24, 11, 3, 0.7)" mask="url(#lamp-holes)"/>
+            <g id="lamp-glows" style="mix-blend-mode: screen"></g>
+            <g id="lamp-spokes"></g>
+        </svg>
+        <div class="info-label" data-part="mantra">The mantra<small>Chenrezig's mantra, <span class="tib" lang="bo">ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ</span>, raised twice around the drum.</small></div>
+        <div class="info-label" data-part="bell">The bell<small>Struck once each turn by the pin on the lid, so the turns can be counted.</small></div>
+        <div class="info-label" data-part="handles">The handles<small>Pushed by hand as people walk past, keeping the wheel turning clockwise.</small></div>
+        <div class="info-label" data-part="flags">Prayer flags<small>Blue, white, red, green, yellow: sky, wind, fire, water, earth. The wind is said to carry their prayers.</small></div>
+        <div class="info-stepper" id="info-stepper">
+            <button class="icon-btn" id="info-prev" aria-label="Previous detail">‹</button>
+            <span id="info-step">1 of 4</span>
+            <button class="icon-btn" id="info-next" aria-label="Next detail">›</button>
+        </div>
+    </div>
+
+    <div class="corner ui">
+        <button class="icon-btn sound" id="sound" aria-label="Mute the bell">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3.5c-3 0-5 2.3-5 5.2v3.6L5.3 15.6h13.4L17 12.3V8.7c0-2.9-2-5.2-5-5.2z"/>
+            <path d="M10.2 18.3a1.9 1.9 0 0 0 3.6 0"/>
+            <g class="waves"><path d="M19.8 6.2c.9 1 1.4 2.3 1.4 3.7"/><path d="M4.2 6.2c-.9 1-1.4 2.3-1.4 3.7"/></g>
+            <path class="slash" d="M4 4l16 16"/>
+        </svg>
+        </button>
+        <button class="icon-btn info-toggle" id="info-toggle" aria-pressed="false" aria-label="Show details"><span class="info-i" aria-hidden="true">i</span></button>
+    </div>
+
+    <div class="turn-count ui" aria-live="polite">
+        <span class="tib" id="count-tib" lang="bo">༠</span>
+        <span class="lat" id="count-lat">0 turns</span>
+    </div>
+
+    <section class="chapter ui" id="chapter" aria-live="polite"></section>
+
+    <svg class="ccw-arc" id="ccw-arc" aria-hidden="true">
+        <path id="ccw-arc-line"/><path id="ccw-arc-head"/>
+    </svg>
+    <div class="ccw-note" id="ccw-note" aria-live="polite"></div>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // ---------------------------------------------------------------
+        // Dimensions. The relief map covers the drum's side surface, so its
+        // aspect ratio follows the drum: TW px around, TH px tall.
+        // ---------------------------------------------------------------
+        const R = 1.4;
+        const HD = 3.7;
+        const CIRC = 2 * Math.PI * R;
+        const TW = 3072;
+        const PX = TW / CIRC; // pixels per world unit
+        const TH = Math.round(HD * PX);
+
+        const TIBETAN = '"Noto Serif Tibetan", "Kailasa", "Microsoft Himalaya", serif';
+        // ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ laid out one syllable per unit; པདྨེ stays a single syllable.
+        const MANTRA_UNITS = ['ཨོཾ་', 'མ་', 'ཎི་', 'པདྨེ་', 'ཧཱུྃ'];
+        const MANTRA = 'ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ།';
+
+        // The six syllables as taught in Tibetan practice: the colour of light
+        // each sends, the realm it reaches, the affliction it eases.
+        const SYLLABLES = [
+            { tib: 'ཨོཾ', rom: 'Oṃ', colour: 'White', hex: '#f4f1e8', glow: '#fff6e0', realm: 'the realm of the gods', affliction: 'pride', flag: 'white' },
+            { tib: 'མ', rom: 'Ma', colour: 'Green', hex: '#3c9a5f', glow: '#4fd083', realm: 'the realm of the jealous gods', affliction: 'jealousy', flag: 'green' },
+            { tib: 'ཎི', rom: 'Ṇi', colour: 'Yellow', hex: '#f7d117', glow: '#ffd24a', realm: 'the human realm', affliction: 'desire', flag: 'yellow' },
+            { tib: 'པད', rom: 'Pad', colour: 'Blue', hex: '#3a6fc4', glow: '#5c95ff', realm: 'the animal realm', affliction: 'ignorance', flag: 'blue' },
+            { tib: 'མེ', rom: 'Me', colour: 'Red', hex: '#cf3b30', glow: '#ff5a44', realm: 'the realm of hungry ghosts', affliction: 'greed', flag: 'red' },
+            { tib: 'ཧཱུྃ', rom: 'Hūṃ', colour: 'Black', hex: '#1d1d22', glow: '#8a8e99', realm: 'the hell realms', affliction: 'hatred', flag: null },
+        ];
+        const FLAG_ELEMENT = { blue: 'the sky', white: 'the wind', red: 'fire', green: 'water', yellow: 'the earth' };
+
+        const nextFrame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+
+        function mulberry32(seed) {
+            return function () {
+                seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+                let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+
+        const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+        const smoothstep = (a, b, v) => { const t = clamp01((v - a) / (b - a)); return t * t * (3 - 2 * t); };
+        const wrapX = x => ((x % TW) + TW) % TW;
+
+        function makeCanvas(w, h) {
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            return c;
+        }
+
+        const storage = {
+            get(key, fallback) {
+                try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); } catch { return fallback; }
+            },
+            set(key, value) {
+                try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode */ }
+            }
+        };
+
+        // ---------------------------------------------------------------
+        // Gaussian blur (three box passes). Wraps horizontally because the
+        // map is wrapped around the drum; clamps vertically.
+        // ---------------------------------------------------------------
+        function boxSizesForGauss(sigma, n) {
+            const wIdeal = Math.sqrt(12 * sigma * sigma / n + 1);
+            let wl = Math.floor(wIdeal); if (wl % 2 === 0) wl--;
+            const wu = wl + 2;
+            const m = Math.round((12 * sigma * sigma - n * wl * wl - 4 * n * wl - 3 * n) / (-4 * wl - 4));
+            const sizes = [];
+            for (let i = 0; i < n; i++) sizes.push(((i < m ? wl : wu) - 1) / 2);
+            return sizes;
+        }
+
+        function boxH(src, dst, r) {
+            const inv = 1 / (2 * r + 1);
+            for (let y = 0; y < TH; y++) {
+                const row = y * TW;
+                let acc = 0;
+                for (let k = -r; k <= r; k++) acc += src[row + wrapX(k)];
+                for (let x = 0; x < TW; x++) {
+                    dst[row + x] = acc * inv;
+                    const add = x + r + 1, sub = x - r;
+                    acc += src[row + (add >= TW ? add - TW : add)] - src[row + (sub < 0 ? sub + TW : sub)];
+                }
+            }
+        }
+
+        function boxV(src, dst, r) {
+            const inv = 1 / (2 * r + 1);
+            const acc = new Float32Array(TW);
+            for (let k = -r; k <= r; k++) {
+                const row = Math.min(TH - 1, Math.max(0, k)) * TW;
+                for (let x = 0; x < TW; x++) acc[x] += src[row + x];
+            }
+            for (let y = 0; y < TH; y++) {
+                const row = y * TW;
+                const addRow = Math.min(TH - 1, y + r + 1) * TW;
+                const subRow = Math.max(0, y - r) * TW;
+                for (let x = 0; x < TW; x++) {
+                    dst[row + x] = acc[x] * inv;
+                    acc[x] += src[addRow + x] - src[subRow + x];
+                }
+            }
+        }
+
+        function blur(src, sigma) {
+            const a = Float32Array.from(src);
+            const b = new Float32Array(src.length);
+            for (const r of boxSizesForGauss(sigma, 3)) {
+                if (r < 1) continue;
+                boxH(a, b, r);
+                boxV(b, a, r);
+            }
+            return a;
+        }
+
+        // Value noise; tiles horizontally with the given period (in cells).
+        function hash2(x, y, seed) {
+            let h = Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(seed, 982451653);
+            h = Math.imul(h ^ (h >>> 13), 1274126177);
+            return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+        }
+
+        function valueNoise(x, y, period, seed) {
+            const x0 = Math.floor(x), y0 = Math.floor(y);
+            const fx = x - x0, fy = y - y0;
+            const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+            const X0 = ((x0 % period) + period) % period, X1 = (X0 + 1) % period;
+            const a = hash2(X0, y0, seed), b = hash2(X1, y0, seed);
+            const c = hash2(X0, y0 + 1, seed), d = hash2(X1, y0 + 1, seed);
+            return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+        }
+
+        function fbm(w, h, cellsX, octaves, seed) {
+            const out = new Float32Array(w * h);
+            const cellsY = cellsX * h / w;
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let amp = 0.5, sum = 0, norm = 0, cx = cellsX;
+                    for (let o = 0; o < octaves; o++) {
+                        sum += amp * valueNoise(x / w * cx, y / h * cellsY * (cx / cellsX), cx, seed + o * 17);
+                        norm += amp; amp *= 0.5; cx *= 2;
+                    }
+                    out[y * w + x] = sum / norm;
+                }
+            }
+            return out;
+        }
+
+        function sampleWrap(field, w, h, u, v) {
+            const x = u * w - 0.5, y = Math.min(h - 1.001, Math.max(0, v * h - 0.5));
+            const x0 = Math.floor(x), y0 = Math.floor(y);
+            const fx = x - x0, fy = y - y0;
+            const xa = ((x0 % w) + w) % w, xb = (xa + 1) % w;
+            const r0 = y0 * w, r1 = Math.min(h - 1, y0 + 1) * w;
+            const a = field[r0 + xa], b = field[r0 + xb], c = field[r1 + xa], d = field[r1 + xb];
+            return (a + (b - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy;
+        }
+
+        // Non-tiling noise, for the cloth creases.
+        const noise2 = (x, y, seed) => valueNoise(x, y, 1 << 20, seed);
+
+        // ---------------------------------------------------------------
+        // Drum relief layout, as fractions of the drum height from the top,
+        // measured off the reference photograph.
+        // ---------------------------------------------------------------
+        const F = f => f * TH;
+        const PERIOD = TW / 3; // three cartouches per band
+        const BANDS = [
+            { top: F(0.132), bot: F(0.370), offset: -0.26 * PERIOD },
+            { top: F(0.592), bot: F(0.812), offset: 0 },
+        ];
+        // [center, half-width (fraction of height), relief height]
+        const RIDGES = [
+            [0.006, 0.010, 0.024],
+            [0.079, 0.011, 0.018],
+            [0.430, 0.010, 0.018],
+            [0.536, 0.010, 0.018],
+            [0.866, 0.012, 0.020],
+            [0.992, 0.008, 0.016],
+        ];
+        // [center, bead count, bead radius]
+        const BEAD_ROWS = [
+            [0.037, 34, 0.060],
+            [0.112, 64, 0.030],
+            [0.395, 64, 0.030],
+            [0.483, 34, 0.060],
+            [0.567, 64, 0.030],
+            [0.838, 64, 0.030],
+        ];
+        const ARCH_TOP = F(0.886), ARCH_BOT = F(0.982), ARCH_COUNT = 26;
+
+        function addBead(h, cx, cy, rWorld, hScale = 0.8) {
+            const r = rWorld * PX, hMax = rWorld * hScale;
+            const y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(TH - 1, Math.ceil(cy + r));
+            const x0 = Math.floor(cx - r), x1 = Math.ceil(cx + r);
+            for (let y = y0; y <= y1; y++) {
+                for (let x = x0; x <= x1; x++) {
+                    const dx = x - cx, dy = y - cy;
+                    const d2 = (dx * dx + dy * dy) / (r * r);
+                    if (d2 >= 1) continue;
+                    const v = hMax * Math.pow(1 - d2, 0.55);
+                    const i = y * TW + wrapX(x);
+                    if (v > h[i]) h[i] = v;
+                }
+            }
+        }
+
+        function addRidge(h, center, halfWidth, height) {
+            const cy = F(center), hw = F(halfWidth);
+            for (let y = Math.max(0, Math.floor(cy - hw)); y <= Math.min(TH - 1, Math.ceil(cy + hw)); y++) {
+                const d = (y - cy) / hw;
+                if (Math.abs(d) >= 1) continue;
+                const v = height * Math.pow(1 - d * d, 0.6);
+                const row = y * TW;
+                for (let x = 0; x < TW; x++) if (v > h[row + x]) h[row + x] = v;
+            }
+        }
+
+        // Draws fn three times so shapes crossing the seam wrap around.
+        function drawWrapped(ctx, fn) {
+            for (const dx of [-TW, 0, TW]) {
+                ctx.save();
+                ctx.translate(dx, 0);
+                fn();
+                ctx.restore();
+            }
+        }
+
+        function readMask(canvas) {
+            const data = canvas.getContext('2d').getImageData(0, 0, TW, TH).data;
+            const out = new Float32Array(TW * TH);
+            for (let i = 0; i < out.length; i++) out[i] = data[i * 4] / 255;
+            return out;
+        }
+
+        // Lays the mantra out inside one cartouche. Returns what to draw and
+        // the box of each of the six syllables, for tapping.
+        function layoutMantra(ctx, x0, x1, yt, yb) {
+            ctx.font = `700 100px ${TIBETAN}`;
+            const m = MANTRA_UNITS.map(u => ctx.measureText(u));
+            const paAdvance = ctx.measureText('པ').width;
+            const asc = Math.max(...m.map(q => q.actualBoundingBoxAscent));
+            const desc = Math.max(...m.map(q => q.actualBoundingBoxDescent));
+            const widths = m.map(q => q.actualBoundingBoxLeft + q.actualBoundingBoxRight);
+            const totalW = widths.reduce((a, b) => a + b, 0);
+            const n = MANTRA_UNITS.length;
+
+            const availH = (yb - yt) * 0.8, availW = (x1 - x0) * 0.9;
+            let s = availH / (asc + desc);
+            const minGap = 18;
+            if ((totalW + minGap * (n - 1)) * s > availW) s = availW / (totalW + minGap * (n - 1));
+            const gap = Math.min((availW - totalW * s) / (n - 1), 45 * s);
+            const groupW = totalW * s + gap * (n - 1);
+            const baseline = (yt + yb) / 2 + (asc - desc) * s / 2;
+
+            const glyphs = [], boxes = [];
+            let px = (x0 + x1) / 2 - groupW / 2;
+            MANTRA_UNITS.forEach((u, i) => {
+                const x = px + m[i].actualBoundingBoxLeft * s;
+                glyphs.push({ text: u, x, y: baseline });
+                const top = baseline - m[i].actualBoundingBoxAscent * s - 6;
+                const bottom = baseline + m[i].actualBoundingBoxDescent * s + 6;
+                const right = px + widths[i] * s;
+                const glyph = glyphs[glyphs.length - 1];
+                if (i === 3) {
+                    // པདྨེ holds two syllables: པ(ད) is Pad, (ད)ྨེ is Me.
+                    const split = x + paAdvance * s;
+                    boxes.push({ syl: 3, x0: px - 6, x1: split, y0: top, y1: bottom, glyph, clip: [-Infinity, split] });
+                    boxes.push({ syl: 4, x0: split, x1: right + 6, y0: top, y1: bottom, glyph, clip: [split, Infinity] });
+                } else {
+                    boxes.push({ syl: i < 3 ? i : 5, x0: px - 6, x1: right + 6, y0: top, y1: bottom, glyph, clip: [-Infinity, Infinity] });
+                }
+                px += widths[i] * s + gap;
+            });
+            boxes.forEach(b => { b.size = 100 * s; });
+            return { size: 100 * s, glyphs, boxes };
+        }
+
+        function drawMantra(ctx, layout) {
+            ctx.font = `700 ${layout.size}px ${TIBETAN}`;
+            ctx.lineWidth = layout.size * 0.025;
+            ctx.lineJoin = 'round';
+            for (const g of layout.glyphs) {
+                ctx.fillText(g.text, g.x, g.y);
+                ctx.strokeText(g.text, g.x, g.y);
+            }
+        }
+
+        function traceCartouche(ctx, xc, a, yt, yb) {
+            const ym = (yt + yb) / 2, hh = yb - yt, p = 34, e = 36;
+            const xl = xc - a, xr = xc + a;
+            ctx.beginPath();
+            ctx.moveTo(xl + e, yt);
+            ctx.lineTo(xr - e, yt);
+            ctx.bezierCurveTo(xr + 8, yt - 2, xr - 18, ym - hh * 0.2, xr + p, ym);
+            ctx.bezierCurveTo(xr - 18, ym + hh * 0.2, xr + 8, yb + 2, xr - e, yb);
+            ctx.lineTo(xl + e, yb);
+            ctx.bezierCurveTo(xl - 8, yb + 2, xl + 18, ym + hh * 0.2, xl - p, ym);
+            ctx.bezierCurveTo(xl + 18, ym - hh * 0.2, xl - 8, yt - 2, xl + e, yt);
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        function traceStem(ctx, gx, yt, yb) {
+            const hh = yb - yt;
+            ctx.beginPath();
+            ctx.moveTo(gx, yt + 12);
+            ctx.bezierCurveTo(gx + 26, yt + hh * 0.35, gx - 26, yt + hh * 0.65, gx, yb - 12);
+            ctx.stroke();
+        }
+
+        function traceArches(ctx) {
+            const U = TW / ARCH_COUNT;
+            const r = 0.40 * U, r2 = 0.20 * U;
+            const top = ARCH_TOP + 6, bottom = ARCH_BOT - 3;
+            const cy = top + r, cy2 = top + r * 0.9 + r2;
+            for (let i = 0; i < ARCH_COUNT; i++) {
+                const x = (i + 0.5) * U;
+                ctx.beginPath();
+                ctx.moveTo(x - r, bottom);
+                ctx.lineTo(x - r, cy);
+                ctx.arc(x, cy, r, Math.PI, 0);
+                ctx.lineTo(x + r, bottom);
+                ctx.moveTo(x - r2, bottom);
+                ctx.lineTo(x - r2, cy2);
+                ctx.arc(x, cy2, r2, Math.PI, 0);
+                ctx.lineTo(x + r2, bottom);
+                ctx.stroke();
+            }
+        }
+
+        // Grape clusters flanking the stem between cartouches.
+        function addClusters(h, gx, yt, yb, rng) {
+            const ym = (yt + yb) / 2;
+            for (const side of [-1, 1]) {
+                const ccx = gx + side * 72;
+                const rx = 50, ry = (yb - yt) * 0.24;
+                const step = 27;
+                for (let yy = -ry; yy <= ry; yy += step * 0.87) {
+                    const odd = Math.round((yy + ry) / (step * 0.87)) % 2;
+                    for (let xx = -rx; xx <= rx; xx += step) {
+                        const px = xx + (odd ? step / 2 : 0), py = yy;
+                        if ((px * px) / (rx * rx) + (py * py) / (ry * ry) > 1) continue;
+                        addBead(h,
+                            ccx + px + (rng() - 0.5) * 4,
+                            ym + py + (rng() - 0.5) * 4,
+                            (10.5 + rng() * 3) / PX, 0.85);
+                    }
+                }
+            }
+            // Small trefoils at the stem ends.
+            for (const y of [yt + 26, yb - 26]) {
+                for (const [dx, dy] of [[-10, 0], [10, 0], [0, y < ym ? -9 : 9]]) {
+                    addBead(h, gx + dx, y + dy, 6 / PX, 0.8);
+                }
+            }
+        }
+
+        async function buildDrumRelief() {
+            const h = new Float32Array(TW * TH);
+            const rng = mulberry32(7);
+
+            // Mantra lettering.
+            const textCanvas = makeCanvas(TW, TH);
+            const tctx = textCanvas.getContext('2d');
+            tctx.fillStyle = '#000'; tctx.fillRect(0, 0, TW, TH);
+            tctx.fillStyle = '#fff'; tctx.strokeStyle = '#fff';
+            const syllableBoxes = [];
+            for (const band of BANDS) {
+                for (let i = 0; i < 3; i++) {
+                    const xc = band.offset + i * PERIOD;
+                    const a = 0.36 * PERIOD;
+                    const layout = layoutMantra(tctx, xc - a, xc + a, band.top, band.bot);
+                    syllableBoxes.push(...layout.boxes);
+                    drawWrapped(tctx, () => drawMantra(tctx, layout));
+                }
+            }
+            const textMask = blur(readMask(textCanvas), 3.2);
+            await nextFrame();
+
+            // Raised line work: cartouche frames, stems, arcade.
+            const lineCanvas = makeCanvas(TW, TH);
+            const lctx = lineCanvas.getContext('2d');
+            lctx.fillStyle = '#000'; lctx.fillRect(0, 0, TW, TH);
+            lctx.strokeStyle = '#fff'; lctx.lineCap = 'round'; lctx.lineJoin = 'round';
+            for (const band of BANDS) {
+                for (let i = 0; i < 3; i++) {
+                    const xc = band.offset + i * PERIOD;
+                    lctx.lineWidth = 7;
+                    drawWrapped(lctx, () => traceCartouche(lctx, xc, 0.36 * PERIOD, band.top, band.bot));
+                    lctx.lineWidth = 4.5;
+                    drawWrapped(lctx, () => traceStem(lctx, xc + PERIOD / 2, band.top, band.bot));
+                }
+            }
+            lctx.lineWidth = 6.5;
+            drawWrapped(lctx, () => traceArches(lctx));
+            const lineMask = blur(readMask(lineCanvas), 1.8);
+
+            await nextFrame();
+            for (let i = 0; i < h.length; i++) {
+                const t = 0.021 * smoothstep(0.05, 0.85, textMask[i]);
+                const l = 0.012 * smoothstep(0.1, 0.9, lineMask[i]);
+                h[i] = Math.max(t, l);
+            }
+
+            for (const [c, hw, height] of RIDGES) addRidge(h, c, hw, height);
+
+            BEAD_ROWS.forEach(([c, count, r], row) => {
+                const phase = (row * 0.37) % 1;
+                for (let i = 0; i < count; i++) {
+                    addBead(h, (i + phase) / count * TW, F(c) + (rng() - 0.5) * 1.5, r * (0.95 + rng() * 0.1));
+                }
+            });
+
+            for (const band of BANDS) {
+                for (let i = 0; i < 3; i++) addClusters(h, band.offset + i * PERIOD + PERIOD / 2, band.top, band.bot, rng);
+            }
+
+            // Hammer marks from the repoussé work.
+            for (let n = 0; n < 3200; n++) {
+                const cx = rng() * TW, cy = rng() * TH;
+                const r = 12 + rng() * 30, depth = 0.0006 + rng() * 0.0011;
+                const y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(TH - 1, Math.ceil(cy + r));
+                for (let y = y0; y <= y1; y++) {
+                    for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) {
+                        const d2 = ((x - cx) ** 2 + (y - cy) ** 2) / (r * r);
+                        if (d2 >= 1) continue;
+                        h[y * TW + wrapX(x)] -= depth * (1 - d2) * (1 - d2);
+                    }
+                }
+            }
+            return { h, textCanvas, syllableBoxes };
+        }
+
+        // ---------------------------------------------------------------
+        // Turns the height field into PBR maps.
+        // ---------------------------------------------------------------
+        const DISP_MAX = 0.07;
+
+        async function buildDrumMaps(h) {
+            await nextFrame();
+            const hs = blur(h, 0.9);  // normals
+            const hb = blur(h, 14);   // broad context, for grime and polish
+            const hd = blur(h, 2.5);  // displacement
+
+            // Tarnish noise at quarter resolution, sampled up.
+            const NW = TW / 4, NH = Math.round(TH / 4);
+            const blotch = fbm(NW, NH, 6, 4, 11);
+            const grime = fbm(NW, NH, 48, 3, 23);
+            await nextFrame();
+
+            const normalC = makeCanvas(TW, TH), colorC = makeCanvas(TW, TH);
+            const roughC = makeCanvas(TW, TH), dispC = makeCanvas(TW, TH);
+            const nImg = normalC.getContext('2d').createImageData(TW, TH);
+            const cImg = colorC.getContext('2d').createImageData(TW, TH);
+            const rImg = roughC.getContext('2d').createImageData(TW, TH);
+            const dImg = dispC.getContext('2d').createImageData(TW, TH);
+            const nd = nImg.data, cd = cImg.data, rd = rImg.data, dd = dImg.data;
+
+            const BRASS = [180, 160, 100], TARN = [120, 108, 64], DARK = [74, 64, 38], POLISH = [218, 204, 146];
+            const k = PX * 0.5;
+
+            for (let y = 0; y < TH; y++) {
+                const row = y * TW;
+                const up = Math.max(0, y - 1) * TW, down = Math.min(TH - 1, y + 1) * TW;
+                const v = (y + 0.5) / TH;
+                for (let x = 0; x < TW; x++) {
+                    const i = row + x, o = i * 4;
+                    const xl = x === 0 ? TW - 1 : x - 1, xr = x === TW - 1 ? 0 : x + 1;
+
+                    // Tangent-space normal; canvas rows run downward, texture v runs up.
+                    const nx = -(hs[row + xr] - hs[row + xl]) * k;
+                    const ny = (hs[down + x] - hs[up + x]) * k;
+                    const inv = 1 / Math.sqrt(nx * nx + ny * ny + 1);
+                    nd[o] = (nx * inv * 0.5 + 0.5) * 255;
+                    nd[o + 1] = (ny * inv * 0.5 + 0.5) * 255;
+                    nd[o + 2] = (inv * 0.5 + 0.5) * 255;
+                    nd[o + 3] = 255;
+
+                    const u = (x + 0.5) / TW;
+                    const bl = sampleWrap(blotch, NW, NH, u, v);
+                    const gr = sampleWrap(grime, NW, NH, u, v);
+                    const cavity = clamp01((hb[i] - h[i]) / 0.005);
+                    const polish = clamp01((h[i] - hb[i]) / 0.008);
+                    const tarn = smoothstep(0.35, 0.75, bl) * 0.45 + gr * 0.2;
+
+                    for (let c = 0; c < 3; c++) {
+                        let col = BRASS[c] + (TARN[c] - BRASS[c]) * tarn;
+                        col += (DARK[c] - col) * cavity * 0.6;
+                        col += (POLISH[c] - col) * polish * 0.6;
+                        cd[o + c] = col;
+                    }
+                    cd[o + 3] = 255;
+
+                    const rough = Math.min(0.9, Math.max(0.12,
+                        0.30 + 0.22 * tarn + 0.35 * cavity - 0.14 * polish + (gr - 0.5) * 0.1));
+                    const ao = 1 - 0.45 * cavity;
+                    rd[o] = ao * 255;          // R: ambient occlusion
+                    rd[o + 1] = rough * 255;   // G: roughness
+                    rd[o + 2] = 255;           // B: metalness
+                    rd[o + 3] = 255;
+
+                    const dv = clamp01(hd[i] / DISP_MAX) * 255;
+                    dd[o] = dd[o + 1] = dd[o + 2] = dv;
+                    dd[o + 3] = 255;
+                }
+            }
+            normalC.getContext('2d').putImageData(nImg, 0, 0);
+            colorC.getContext('2d').putImageData(cImg, 0, 0);
+            roughC.getContext('2d').putImageData(rImg, 0, 0);
+            dispC.getContext('2d').putImageData(dImg, 0, 0);
+            return { normalC, colorC, roughC, dispC };
+        }
+
+        // ---------------------------------------------------------------
+        // Painted wood, the paper scroll.
+        // ---------------------------------------------------------------
+        function paintedWoodTexture(base, faded, seed) {
+            const S = 1024, c = makeCanvas(S, S), ctx = c.getContext('2d');
+            const rng = mulberry32(seed);
+            ctx.fillStyle = base; ctx.fillRect(0, 0, S, S);
+            for (let i = 0; i < 45; i++) {
+                const x = rng() * S, y = rng() * S, r = 80 + rng() * 260;
+                const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+                g.addColorStop(0, faded); g.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+            }
+            for (let i = 0; i < 260; i++) {
+                ctx.strokeStyle = `rgba(40,10,5,${0.03 + rng() * 0.06})`;
+                ctx.lineWidth = 0.5 + rng() * 1.5;
+                const y = rng() * S;
+                ctx.beginPath(); ctx.moveTo(0, y);
+                for (let x = 0; x <= S; x += 64) ctx.lineTo(x, y + Math.sin(x * 0.01 + i) * 4 + (rng() - 0.5) * 3);
+                ctx.stroke();
+            }
+            for (let i = 0; i < 520; i++) {
+                const x = rng() * S, y = rng() * S, s = 1 + rng() * 6;
+                ctx.fillStyle = rng() < 0.6 ? `rgba(196,164,122,${0.5 + rng() * 0.5})` : `rgba(96,62,40,${0.5 + rng() * 0.4})`;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                for (let k = 0; k < 5; k++) ctx.lineTo(x + (rng() - 0.5) * s * 2, y + (rng() - 0.5) * s);
+                ctx.fill();
+            }
+            const tex = new THREE.CanvasTexture(c);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        }
+
+        function scrollTextures() {
+            const W = 2048, H = 1024;
+            const c = makeCanvas(W, H), ctx = c.getContext('2d');
+            const rng = mulberry32(3);
+            ctx.fillStyle = '#e4d4aa'; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 6000; i++) {
+                ctx.fillStyle = `rgba(120,90,50,${rng() * 0.06})`;
+                ctx.fillRect(rng() * W, rng() * H, 1 + rng() * 3, 1 + rng() * 8);
+            }
+            ctx.fillStyle = '#2b211b';
+            ctx.font = `400 30px ${TIBETAN}`;
+            ctx.textBaseline = 'middle';
+            const lineW = ctx.measureText(MANTRA + ' ').width;
+            for (let y = 36, r = 0; y < H - 20; y += 44, r++) {
+                for (let x = -(r % 2) * lineW / 2; x < W; x += lineW) ctx.fillText(MANTRA, x, y);
+            }
+            const side = new THREE.CanvasTexture(c);
+            side.colorSpace = THREE.SRGBColorSpace;
+            side.wrapS = THREE.RepeatWrapping;
+
+            const cc = makeCanvas(512, 512), cctx = cc.getContext('2d');
+            cctx.fillStyle = '#d9c796'; cctx.fillRect(0, 0, 512, 512);
+            for (let r = 18; r < 256; r += 2.2) {
+                cctx.strokeStyle = `rgba(110,82,46,${0.15 + rng() * 0.25})`;
+                cctx.lineWidth = 0.8;
+                cctx.beginPath(); cctx.arc(256, 256, r, 0, Math.PI * 2); cctx.stroke();
+            }
+            cctx.fillStyle = '#3a2a1c';
+            cctx.beginPath(); cctx.arc(256, 256, 18, 0, Math.PI * 2); cctx.fill();
+            const cap = new THREE.CanvasTexture(cc);
+            cap.colorSpace = THREE.SRGBColorSpace;
+            return { side, cap };
+        }
+
+        // ---------------------------------------------------------------
+        // Prayer flags: five colours in their fixed order, thin cotton
+        // block-printed almost edge to edge: the windhorse in a central
+        // panel, the four dignities in corner boxes, lines of mantra
+        // filling the rest. Printing is patchy; hems fray into threads.
+        // ---------------------------------------------------------------
+        const FLAG_ORDER = ['blue', 'white', 'red', 'green', 'yellow'];
+        const FLAG_CLOTH = {
+            blue:   ['#3e4fb4', '#4a5cc4', '#35469f'],
+            white:  ['#efece4', '#e5e0d3', '#f5f2ea'],
+            red:    ['#d23b2d', '#e2593b', '#c6342b'],   // reds fade toward orange in the sun
+            green:  ['#2f8c4c', '#3c9b57', '#2a7e45'],
+            yellow: ['#f0c42c', '#f4d048', '#e7b824'],
+        };
+
+        // A galloping horse, facing right, carrying three flaming jewels.
+        function drawWindhorse(ctx, cx, cy, s) {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.scale(s, s);
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            // Body and neck.
+            ctx.beginPath();
+            ctx.moveTo(-30, -4);
+            ctx.bezierCurveTo(-26, -14, 10, -16, 20, -10);
+            ctx.bezierCurveTo(26, -18, 32, -30, 40, -34);
+            ctx.lineTo(46, -32);
+            ctx.bezierCurveTo(40, -22, 34, -8, 30, 4);
+            ctx.bezierCurveTo(24, 12, -20, 14, -30, 6);
+            ctx.closePath();
+            ctx.fill();
+            // Head, sloping forward.
+            ctx.beginPath();
+            ctx.moveTo(40, -36);
+            ctx.lineTo(54, -30);
+            ctx.lineTo(58, -24);
+            ctx.lineTo(50, -22);
+            ctx.lineTo(42, -26);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath(); ctx.moveTo(41, -35); ctx.lineTo(40, -42); ctx.lineTo(45, -36); ctx.fill();
+            // Mane.
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 4; i++) {
+                ctx.beginPath();
+                ctx.moveTo(22 + i * 5, -14 - i * 5);
+                ctx.quadraticCurveTo(16 + i * 5, -20 - i * 5, 20 + i * 5, -24 - i * 5);
+                ctx.stroke();
+            }
+            // Legs at full gallop.
+            ctx.lineWidth = 3.4;
+            for (const leg of [
+                [[22, 6], [34, 16], [46, 20]], [[16, 8], [24, 22], [20, 34]],
+                [[-22, 6], [-34, 18], [-46, 20]], [[-16, 8], [-12, 22], [-20, 34]],
+            ]) {
+                ctx.beginPath();
+                ctx.moveTo(...leg[0]); ctx.lineTo(...leg[1]); ctx.lineTo(...leg[2]);
+                ctx.stroke();
+            }
+            // Flowing tail.
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-28, -4);
+            ctx.bezierCurveTo(-44, -14, -54, -8, -58, 6);
+            ctx.stroke();
+            // Three flaming jewels on its back.
+            for (const [x, y] of [[-10, -21], [0, -25], [10, -21]]) {
+                ctx.beginPath(); ctx.arc(x, y, 4.2, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(x - 3, y - 3); ctx.quadraticCurveTo(x, y - 13, x + 3, y - 3); ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        const FLAG_TEX_W = 256, FLAG_TEX_H = 384;
+
+        function paintFlag(colour, variant, seed) {
+            const W = FLAG_TEX_W, H = FLAG_TEX_H;
+            const c = makeCanvas(W, H), ctx = c.getContext('2d');
+            const rng = mulberry32(seed);
+            const cloth = FLAG_CLOTH[colour][variant];
+            ctx.fillStyle = cloth;
+            ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 18; i++) {
+                const x = rng() * W, y = rng() * H, r = 30 + rng() * 70;
+                const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+                g.addColorStop(0, `rgba(255,255,255,${0.06 + rng() * 0.12})`);
+                g.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            }
+            for (let i = 0; i < 1400; i++) {
+                ctx.fillStyle = rng() < 0.5 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+                ctx.fillRect(rng() * W, rng() * H, 1 + rng() * 4, 1);
+            }
+            // Sleeve sewn over the string.
+            ctx.fillStyle = 'rgba(0,0,0,0.14)';
+            ctx.fillRect(0, 0, W, 16);
+            ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath(); ctx.moveTo(0, 17.5); ctx.lineTo(W, 17.5); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // The print, made on its own layer so it can be knocked back unevenly.
+            const ink = makeCanvas(W, H), ictx = ink.getContext('2d');
+            ictx.fillStyle = ictx.strokeStyle = '#141218';
+            const L = 8, T = 22, R = W - 8, B = H - 34;
+            ictx.lineWidth = 1.5;
+            ictx.strokeRect(L, T, R - L, B - T);
+            ictx.strokeRect(L + 3, T + 3, R - L - 6, B - T - 6);
+            ictx.save();
+            ictx.beginPath(); ictx.rect(L + 5, T + 5, R - L - 10, B - T - 10); ictx.clip();
+            ictx.font = `400 10px ${TIBETAN}`;
+            const lineW = ictx.measureText(MANTRA + ' ').width;
+            for (let y = T + 16, row = 0; y < B - 4; y += 13, row++) {
+                for (let x = L + 6 - (row * 17) % lineW; x < R; x += lineW) ictx.fillText(MANTRA, x, y);
+            }
+            ictx.restore();
+
+            const clearBox = (x, y, w, h) => {
+                ictx.clearRect(x, y, w, h);
+                ictx.strokeRect(x, y, w, h);
+            };
+            // Heading line in larger letters.
+            clearBox(L + 5, T + 5, R - L - 10, 24);
+            ictx.font = `400 15px ${TIBETAN}`;
+            ictx.textAlign = 'center';
+            ictx.fillText('ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ', W / 2, T + 23);
+            ictx.textAlign = 'left';
+            // Central windhorse panel.
+            const pw = (R - L) * 0.56, ph = (B - T) * 0.34;
+            const px = W / 2 - pw / 2, py = T + (B - T) * 0.47 - ph / 2;
+            clearBox(px, py, pw, ph);
+            drawWindhorse(ictx, W / 2 - 2, py + ph / 2 + 4, pw / 128);
+            // Four corner boxes for garuda, dragon, tiger and snow lion.
+            const bw = (R - L) * 0.28, bh = (B - T) * 0.15;
+            for (const [x, y] of [[L + 6, T + 30], [R - 6 - bw, T + 30], [L + 6, B - 6 - bh], [R - 6 - bw, B - 6 - bh]]) {
+                clearBox(x, y, bw, bh);
+                ictx.lineWidth = 2;
+                ictx.beginPath(); ictx.arc(x + bw / 2, y + bh / 2, Math.min(bw, bh) * 0.28, 0, Math.PI * 2); ictx.stroke();
+                ictx.beginPath();
+                ictx.moveTo(x + bw * 0.25, y + bh * 0.7);
+                ictx.quadraticCurveTo(x + bw / 2, y + bh * 0.15, x + bw * 0.75, y + bh * 0.7);
+                ictx.stroke();
+                ictx.lineWidth = 1.5;
+            }
+            // Uneven inking of a hand-pulled block print.
+            ictx.globalCompositeOperation = 'destination-out';
+            for (let i = 0; i < 40; i++) {
+                const x = rng() * W, y = rng() * H, r = 12 + rng() * 45;
+                const g = ictx.createRadialGradient(x, y, 0, x, y, r);
+                g.addColorStop(0, `rgba(0,0,0,${0.3 + rng() * 0.5})`);
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+                ictx.fillStyle = g; ictx.fillRect(0, 0, W, H);
+            }
+            ctx.globalAlpha = colour === 'white' ? 0.72 : 0.6;
+            ctx.drawImage(ink, 0, 0);
+            ctx.globalAlpha = 1;
+
+            // Frayed hem and nicked sides.
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.moveTo(0, H);
+            for (let x = 0; x <= W; x += 4) ctx.lineTo(x, H - 30 + (rng() - 0.3) * 10 + (rng() < 0.12 ? -14 * rng() : 0));
+            ctx.lineTo(W, H);
+            ctx.closePath();
+            ctx.fill();
+            for (let i = 0; i < 8; i++) {
+                const y = 30 + rng() * (H - 80), side = rng() < 0.5 ? 0 : W - 4;
+                ctx.fillRect(side, y, 4, 3 + rng() * 10);
+            }
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = cloth;
+            ctx.lineWidth = 1.2;
+            for (let i = 0; i < 30; i++) {
+                const x = 2 + rng() * (W - 4), y0 = H - 34, len = 8 + rng() * 28;
+                ctx.beginPath();
+                ctx.moveTo(x, y0);
+                ctx.quadraticCurveTo(x + (rng() - 0.5) * 6, y0 + len * 0.6, x + (rng() - 0.5) * 10, y0 + len);
+                ctx.stroke();
+            }
+            const tex = new THREE.CanvasTexture(c);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.anisotropy = 4;
+            return tex;
+        }
+
+        // Creases from folding and crumpling, as a normal map.
+        function flagWrinkles(seed) {
+            const W = 96, H = 144, h = new Float32Array(W * H);
+            const rng = mulberry32(seed);
+            const creases = [];
+            for (let i = 0; i < 9; i++) {
+                creases.push({ x: rng() * W, y: rng() * H, a: (rng() - 0.5) * 0.7 + (rng() < 0.25 ? Math.PI / 2 : 0), amp: (rng() - 0.5) * 1.4, w: 1.2 + rng() * 3 });
+            }
+            creases.push({ x: W / 3, y: 0, a: 0, amp: 1.2, w: 1.3 }, { x: 2 * W / 3, y: 0, a: 0, amp: -1.1, w: 1.3 });
+            for (let y = 0; y < H; y++) {
+                for (let x = 0; x < W; x++) {
+                    let v = 0;
+                    for (const c of creases) {
+                        const d = (x - c.x) * Math.cos(c.a) - (y - c.y) * Math.sin(c.a);
+                        v += c.amp * Math.exp(-(d * d) / (c.w * c.w));
+                    }
+                    h[y * W + x] = v + (noise2(x * 0.15, y * 0.15, seed) - 0.5) * 0.8;
+                }
+            }
+            const c = makeCanvas(W, H), ctx = c.getContext('2d');
+            const img = ctx.createImageData(W, H);
+            for (let y = 0; y < H; y++) {
+                for (let x = 0; x < W; x++) {
+                    const xl = Math.max(0, x - 1), xr = Math.min(W - 1, x + 1);
+                    const yu = Math.max(0, y - 1), yd = Math.min(H - 1, y + 1);
+                    const nx = -(h[y * W + xr] - h[y * W + xl]) * 0.6;
+                    const ny = (h[yd * W + x] - h[yu * W + x]) * 0.6;
+                    const inv = 1 / Math.sqrt(nx * nx + ny * ny + 1);
+                    const o = (y * W + x) * 4;
+                    img.data[o] = (nx * inv * 0.5 + 0.5) * 255;
+                    img.data[o + 1] = (ny * inv * 0.5 + 0.5) * 255;
+                    img.data[o + 2] = (inv * 0.5 + 0.5) * 255;
+                    img.data[o + 3] = 255;
+                }
+            }
+            ctx.putImageData(img, 0, 0);
+            return new THREE.CanvasTexture(c);
+        }
+
+        function smokeTexture() {
+            const S = 128, c = makeCanvas(S, S), ctx = c.getContext('2d');
+            const rng = mulberry32(5);
+            for (let i = 0; i < 14; i++) {
+                const x = S / 2 + (rng() - 0.5) * 40, y = S / 2 + (rng() - 0.5) * 40, r = 20 + rng() * 30;
+                const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+                g.addColorStop(0, 'rgba(236,238,242,0.35)');
+                g.addColorStop(1, 'rgba(236,238,242,0)');
+                ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+            }
+            const tex = new THREE.CanvasTexture(c);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            return tex;
+        }
+
+        // ---------------------------------------------------------------
+        // Environment for the brass: the valley's sky, sun and ridges,
+        // pre-filtered with PMREM.
+        // ---------------------------------------------------------------
+        // As in the photograph: low late-afternoon sun from the left.
+        const SUN_DIR = new THREE.Vector3(-8, 4.5, 6).normalize();
+
+        function buildEnvironment(renderer) {
+            const env = new THREE.Scene();
+            env.add(new THREE.Mesh(
+                new THREE.SphereGeometry(50, 96, 48),
+                new THREE.ShaderMaterial({
+                    side: THREE.BackSide,
+                    depthWrite: false,
+                    uniforms: { uSun: { value: SUN_DIR } },
+                    vertexShader: `varying vec3 vDir;
+                        void main() { vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+                    fragmentShader: `varying vec3 vDir; uniform vec3 uSun;
+                        void main() {
+                            vec3 d = normalize(vDir);
+                            float h = d.y;
+                            vec3 zen = vec3(0.09, 0.24, 0.66);
+                            vec3 hor = vec3(0.60, 0.72, 0.88);
+                            vec3 c = mix(hor, zen, pow(max(h, 0.0), 0.5));
+                            float az = atan(d.x, d.z);
+                            float ridge = 0.05 + 0.06 * abs(sin(az * 2.3) + 0.5 * sin(az * 6.1 + 1.0));
+                            if (h < ridge) {
+                                float lit = 0.5 + 0.5 * sin(az * 3.7 + 0.8);
+                                c = mix(vec3(0.34, 0.26, 0.24), vec3(0.78, 0.52, 0.28), lit);
+                            }
+                            if (h < 0.0) c = mix(vec3(0.34, 0.33, 0.22), vec3(0.16, 0.15, 0.11), clamp(-h * 2.0, 0.0, 1.0));
+                            float s = max(dot(d, uSun), 0.0);
+                            c += vec3(1.0, 0.86, 0.62) * (pow(s, 900.0) * 80.0 + pow(s, 14.0) * 0.5);
+                            gl_FragColor = vec4(c, 1.0);
+                        }`,
+                })
+            ));
+            const pmrem = new THREE.PMREMGenerator(renderer);
+            const tex = pmrem.fromScene(env, 0.01).texture;
+            pmrem.dispose();
+            return tex;
+        }
+
+        // ---------------------------------------------------------------
+        // Renderer and the three layers: the valley (heavily out of focus),
+        // the prayer flags (slightly out of focus), and the wheel (sharp).
+        // ---------------------------------------------------------------
+        const container = document.getElementById('webgl-container');
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.autoClear = false;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.0;
+        container.appendChild(renderer.domElement);
+
+        const scene = new THREE.Scene();       // the wheel, sharp
+        const flagScene = new THREE.Scene();   // flags and smoke
+        const bgScene = new THREE.Scene();     // the valley
+
+        const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 500);
+
+        const rtOptions = { type: THREE.HalfFloatType };
+        let bgA, bgB, flA, flB;
+        function makeTargets() {
+            for (const t of [bgA, bgB, flA, flB]) t?.dispose();
+            const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+            const w = Math.max(2, Math.floor(size.x / 2)), h = Math.max(2, Math.floor(size.y / 2));
+            bgA = new THREE.WebGLRenderTarget(w, h, rtOptions);
+            bgB = new THREE.WebGLRenderTarget(w, h, rtOptions);
+            flA = new THREE.WebGLRenderTarget(w, h, rtOptions);
+            flB = new THREE.WebGLRenderTarget(w, h, rtOptions);
+        }
+        makeTargets();
+
+        const quadVertex = `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
+        const quadScene = new THREE.Scene();
+        const quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2));
+        quad.frustumCulled = false;
+        quadScene.add(quad);
+
+        const blurMaterial = new THREE.ShaderMaterial({
+            uniforms: { tMap: { value: null }, uDir: { value: new THREE.Vector2() } },
+            vertexShader: quadVertex,
+            fragmentShader: `uniform sampler2D tMap; uniform vec2 uDir; varying vec2 vUv;
+                void main() {
+                    vec4 s = texture2D(tMap, vUv) * 0.2270270;
+                    s += (texture2D(tMap, vUv + uDir * 1.3846) + texture2D(tMap, vUv - uDir * 1.3846)) * 0.3162162;
+                    s += (texture2D(tMap, vUv + uDir * 3.2308) + texture2D(tMap, vUv - uDir * 3.2308)) * 0.0702703;
+                    gl_FragColor = s;
+                }`,
+            depthTest: false, depthWrite: false, toneMapped: false,
+        });
+
+        // The valley is painted in display colours; the flags are lit, so they
+        // get the same filmic curve as the wheel.
+        const compositeMaterial = new THREE.ShaderMaterial({
+            uniforms: { tBg: { value: null }, tFl: { value: null } },
+            vertexShader: quadVertex,
+            fragmentShader: `uniform sampler2D tBg; uniform sampler2D tFl; varying vec2 vUv;
+                vec3 aces(vec3 x) { return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
+                void main() {
+                    vec4 b = texture2D(tBg, vUv);
+                    vec4 f = texture2D(tFl, vUv);
+                    vec3 fc = f.a > 0.001 ? aces(f.rgb / f.a) * f.a : vec3(0.0);
+                    gl_FragColor = vec4(b.rgb * (1.0 - f.a) + fc, 1.0);
+                    #include <colorspace_fragment>
+                }`,
+            depthTest: false, depthWrite: false, toneMapped: false,
+        });
+
+        function blurTarget(a, b, radius, iterations) {
+            quad.material = blurMaterial;
+            for (let i = 0; i < iterations; i++) {
+                blurMaterial.uniforms.tMap.value = a.texture;
+                blurMaterial.uniforms.uDir.value.set(radius / a.width, 0);
+                renderer.setRenderTarget(b);
+                renderer.render(quadScene, quadCam);
+                blurMaterial.uniforms.tMap.value = b.texture;
+                blurMaterial.uniforms.uDir.value.set(0, radius / a.height);
+                renderer.setRenderTarget(a);
+                renderer.render(quadScene, quadCam);
+            }
+        }
+
+        scene.environment = buildEnvironment(renderer);
+        scene.environmentIntensity = 1.0;
+        const maxAniso = renderer.capabilities.getMaxAnisotropy();
+
+        // Sunlight, late afternoon, from the right.
+        scene.add(new THREE.HemisphereLight(0x9cc3ff, 0x8a6a45, 0.55));
+        const sun = new THREE.DirectionalLight(0xffe4bf, 3.3);
+        sun.position.copy(SUN_DIR).multiplyScalar(14);
+        sun.castShadow = true;
+        sun.shadow.mapSize.set(4096, 4096);
+        Object.assign(sun.shadow.camera, { left: -10, right: 10, top: 7, bottom: -9, near: 1, far: 40 });
+        sun.shadow.bias = -0.0003;
+        sun.shadow.normalBias = 0.03;
+        scene.add(sun);
+        const skyFill = new THREE.DirectionalLight(0x9fbfff, 0.45);
+        skyFill.position.set(-6, 3, 4);
+        scene.add(skyFill);
+
+        flagScene.add(new THREE.HemisphereLight(0xb0cdff, 0x8a6a45, 0.9));
+        const flagSun = new THREE.DirectionalLight(0xffe4bf, 2.2);
+        flagSun.position.copy(SUN_DIR).multiplyScalar(14);
+        flagScene.add(flagSun);
+
+        // ---------------------------------------------------------------
+        // Camera stages: I the object, II the mantra up close, III the
+        // scroll sliding out beneath the drum. Each change is one eased
+        // move straight from wherever the camera is to the new stage.
+        // ---------------------------------------------------------------
+        const VIEWS = [
+            { pos: new THREE.Vector3(0, 0.4, 12.5), look: new THREE.Vector3(0, 0.1, 0) },
+            { pos: new THREE.Vector3(0.9, -0.55, 4.3), look: new THREE.Vector3(0, -0.7, 0) },
+            { pos: new THREE.Vector3(1.1, -2.4, 11.5), look: new THREE.Vector3(0, -3.2, 0) },
+        ];
+        let stage = 0;
+        let infoPending = false; // details asked for from another view
+        const camLook = new THREE.Vector3();
+        const camFrom = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
+        const camTo = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
+        const camMove = { t: 1, duration: 1.6 };
+        const easeInOut = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+
+        function viewFor(i, out) {
+            const v = VIEWS[i];
+            const factor = Math.max(1, 0.8 / camera.aspect);
+            out.look.copy(v.look);
+            out.pos.copy(v.pos).sub(v.look).multiplyScalar(factor).add(v.look);
+            // On tall screens, frame the wheel higher, clear of the text below.
+            const lift = (factor - 1) * 1.4;
+            out.look.y -= lift;
+            out.pos.y -= lift;
+        }
+
+        function placeCamera(dt) {
+            camMove.t = Math.min(1, camMove.t + dt / camMove.duration);
+            if (infoPending && stage === 0 && camMove.t > 0.9) setInfo(true);
+            const k = easeInOut(camMove.t);
+            viewFor(stage, camTo);
+            camLook.lerpVectors(camFrom.look, camTo.look, k);
+            camera.position.lerpVectors(camFrom.pos, camTo.pos, k);
+            camera.lookAt(camLook);
+        }
+        viewFor(0, camFrom);
+        placeCamera(0);
+
+        // ---------------------------------------------------------------
+        // The valley: a photograph of the Indus near Leh in late-afternoon
+        // light. It hangs at a fixed distance in front of the camera so it
+        // always fills the view, and shifts only as the camera turns, the
+        // way distant scenery does. On top: glints on the river and cloud
+        // shadows drifting over the land.
+        // ---------------------------------------------------------------
+        const PHOTO_URL = 'assets/indus-valley.jpg';
+        const PHOTO_ASPECT = 16 / 9;
+        const PHOTO_FOCUS_U = 0.6;   // the golden ridge, kept in view when the sides are cropped
+        const BACKDROP_DIST = 150;
+        const refDir = VIEWS[0].look.clone().sub(VIEWS[0].pos).normalize();
+        const REF_YAW = Math.atan2(refDir.x, -refDir.z), REF_PITCH = Math.asin(refDir.y);
+        let backdrop = null, backdropMaterial = null;
+
+        const loadPhoto = () => new Promise((resolve, reject) => new THREE.ImageLoader().load(PHOTO_URL, resolve, undefined, reject));
+
+        // Where the river and the land are, read from the photo's colours:
+        // R marks water, G marks land (not sky).
+        function photoMasks(img) {
+            const W = 512, H = 288, c = makeCanvas(W, H), ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0, W, H);
+            const d = ctx.getImageData(0, 0, W, H);
+            for (let y = 0; y < H; y++) {
+                const v = y / H;
+                for (let x = 0; x < W; x++) {
+                    const o = (y * W + x) * 4;
+                    const r = d.data[o], g = d.data[o + 1], b = d.data[o + 2];
+                    const hi = Math.max(r, g, b), lo = Math.min(r, g, b), lum = (r + g + b) / 3;
+                    const cloud = v < 0.45 && lum > 185 && hi - lo < 70;
+                    const sky = v < 0.6 && ((b > r + 25 && b > 120) || cloud);
+                    const water = v > 0.5 && b >= r - 4 && lum > 100 && hi - lo < 75;
+                    d.data[o] = water ? 255 : 0;
+                    d.data[o + 1] = sky ? 0 : 255;
+                    d.data[o + 2] = 0;
+                    d.data[o + 3] = 255;
+                }
+            }
+            ctx.putImageData(d, 0, 0);
+            return new THREE.CanvasTexture(c);
+        }
+
+        function buildValley(img) {
+            const photo = new THREE.Texture(img);
+            photo.colorSpace = THREE.SRGBColorSpace;
+            photo.anisotropy = maxAniso;
+            photo.needsUpdate = true;
+            backdropMaterial = new THREE.ShaderMaterial({
+                uniforms: { tPhoto: { value: photo }, tMask: { value: photoMasks(img) }, uTime: { value: 0 } },
+                vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+                fragmentShader: `uniform sampler2D tPhoto; uniform sampler2D tMask; uniform float uTime; varying vec2 vUv;
+                    float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+                    float noise(vec2 p) {
+                        vec2 i = floor(p), f = fract(p);
+                        vec2 u = f * f * (3.0 - 2.0 * f);
+                        return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+                    }
+                    void main() {
+                        vec3 c = texture2D(tPhoto, vUv).rgb;
+                        vec2 m = texture2D(tMask, vUv).rg;
+                        float sh = noise(vUv * vec2(3.0, 5.0) + vec2(uTime * 0.012, uTime * 0.003)) * 0.65
+                                 + noise(vUv * vec2(7.0, 11.0) + vec2(uTime * 0.02, 0.0)) * 0.35;
+                        c *= 1.0 - 0.2 * m.g * smoothstep(0.55, 0.8, sh);
+                        vec2 cell = floor(vUv * vec2(1600.0, 900.0));
+                        float n = hash(cell + floor(uTime * 2.0 + hash(cell) * 6.0));
+                        float sparkle = step(0.985, n) * m.r * (0.6 + 0.4 * sin(uTime * 9.0 + n * 40.0));
+                        c += vec3(1.0, 0.95, 0.85) * sparkle * 1.6;
+                        gl_FragColor = vec4(c, 1.0);
+                    }`,
+                depthWrite: false,
+            });
+            backdrop = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), backdropMaterial);
+            backdrop.frustumCulled = false;
+            bgScene.add(backdrop);
+        }
+
+        const bdForward = new THREE.Vector3(), bdRight = new THREE.Vector3(), bdUp = new THREE.Vector3();
+        function placeBackdrop() {
+            if (!backdrop) return;
+            const D = BACKDROP_DIST;
+            const h = 2 * D * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+            const w = h * camera.aspect;
+            const ph = Math.max(h, w / PHOTO_ASPECT) * 1.18;
+            const pw = ph * PHOTO_ASPECT;
+            backdrop.scale.set(pw, ph, 1);
+            camera.getWorldDirection(bdForward);
+            const yaw = Math.atan2(bdForward.x, -bdForward.z) - REF_YAW;
+            const pitch = Math.asin(bdForward.y) - REF_PITCH;
+            const spareX = (pw - w) / 2, spareY = (ph - h) / 2;
+            const clampTo = (v, m) => Math.max(-m, Math.min(m, v));
+            const offX = clampTo((0.5 - PHOTO_FOCUS_U) * pw - D * Math.tan(yaw), spareX);
+            const offY = clampTo(-D * Math.tan(pitch), spareY);
+            backdrop.quaternion.copy(camera.quaternion);
+            bdRight.set(1, 0, 0).applyQuaternion(camera.quaternion);
+            bdUp.set(0, 1, 0).applyQuaternion(camera.quaternion);
+            backdrop.position.copy(camera.position).addScaledVector(bdForward, D)
+                .addScaledVector(bdRight, offX).addScaledVector(bdUp, offY);
+        }
+
+        // ---------------------------------------------------------------
+        // A string of flags behind the wheel, receding into the distance,
+        // packed edge to edge, moving in a light wind.
+        // ---------------------------------------------------------------
+        const flags = [];
+        const FLAG_W = 0.6, FLAG_H = 0.9;
+        // From far behind the wheel on the left to nearer on the right; always
+        // behind the wheel and hanging below the beam.
+        const ROPE_A = new THREE.Vector3(-19, 3.2, -13), ROPE_B = new THREE.Vector3(11, 2.5, -1.2), ROPE_SAG = 1.2;
+        const ropePoint = (s, out = new THREE.Vector3()) => {
+            out.lerpVectors(ROPE_A, ROPE_B, s);
+            out.y -= ROPE_SAG * 4 * s * (1 - s);
+            return out;
+        };
+
+        function buildFlags() {
+            const rng = mulberry32(77);
+            const materials = {};
+            const wrinkles = [0, 1, 2, 3].map(i => flagWrinkles(300 + i));
+            FLAG_ORDER.forEach((colour, ci) => {
+                materials[colour] = [0, 1, 2].map(v => {
+                    const map = paintFlag(colour, v, 10 + ci * 7 + v);
+                    return new THREE.MeshStandardMaterial({
+                        map, alphaTest: 0.5, side: THREE.DoubleSide,
+                        normalMap: wrinkles[(ci + v) % 4], normalScale: new THREE.Vector2(0.9, 0.9),
+                        roughness: 0.95, metalness: 0,
+                        // Thin cotton glows where the sun comes through it.
+                        emissive: 0xffffff, emissiveMap: map, emissiveIntensity: 0.2,
+                    });
+                });
+            });
+
+            // Place flags by distance along the string.
+            const samples = [], p = new THREE.Vector3(), q = new THREE.Vector3();
+            let length = 0;
+            for (let i = 0; i <= 600; i++) {
+                const s = i / 600;
+                ropePoint(s, p);
+                if (i > 0) length += p.distanceTo(q);
+                samples.push({ s, d: length });
+                q.copy(p);
+            }
+            const spacing = FLAG_W * 0.97;
+            let j = 0;
+            for (let k = 0, d = 0.3; d < length - 0.3; k++, d += spacing) {
+                while (samples[j + 1].d < d) j++;
+                const s = samples[j].s;
+                const colour = FLAG_ORDER[k % 5];
+                const pos = ropePoint(s);
+                const ahead = ropePoint(Math.min(1, s + 0.002)).sub(ropePoint(Math.max(0, s - 0.002))).normalize();
+
+                const geo = new THREE.PlaneGeometry(FLAG_W, FLAG_H, 8, 14);
+                geo.translate(0, -FLAG_H / 2, 0);
+                const base = Float32Array.from(geo.attributes.position.array);
+                // Folds pressed in from storage, and a little crumpling.
+                const fold = new Float32Array(base.length / 3);
+                const f1 = (rng() - 0.5) * 0.09, f2 = (rng() - 0.5) * 0.09, seed = rng() * 100;
+                for (let i = 0; i < fold.length; i++) {
+                    const u = base[i * 3] / FLAG_W + 0.5, v = -base[i * 3 + 1] / FLAG_H;
+                    fold[i] = f1 * Math.max(0, 1 - Math.abs(u - 1 / 3) * 6) + f2 * Math.max(0, 1 - Math.abs(u - 2 / 3) * 6)
+                        + 0.03 * Math.sin(u * 7 + seed) * Math.sin(v * 5 + seed * 0.7)
+                        + 0.02 * v * v * Math.sin(u * 13 + seed * 1.3);
+                }
+
+                const mesh = new THREE.Mesh(geo, materials[colour][Math.floor(rng() * 3)]);
+                const holder = new THREE.Group();
+                holder.position.copy(pos);
+                holder.rotation.y = Math.atan2(-ahead.z, ahead.x) + (rng() - 0.5) * 0.9;
+                mesh.rotation.z = Math.asin(Math.max(-1, Math.min(1, ahead.y))) * 0.6;
+                holder.add(mesh);
+                flagScene.add(holder);
+                flags.push({ mesh, holder, colour, base, fold, lean: (rng() - 0.5) * 0.3, phase: k * 1.37 + rng() * 2, boost: 0, boostTarget: 0, calm: 0, calmTarget: 0 });
+            }
+
+            const pts = [];
+            for (let i = 0; i <= 80; i++) pts.push(ropePoint(i / 80));
+            const rope = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 200, 0.01, 6, false),
+                new THREE.MeshStandardMaterial({ color: 0x3a3228, roughness: 1 }));
+            flagScene.add(rope);
+        }
+
+        function windStrength(t) {
+            return 0.32 + 0.2 * Math.sin(t * 0.23) + 0.12 * Math.sin(t * 0.61 + 1.3) + 0.06 * Math.sin(t * 1.7 + 0.4);
+        }
+
+        function updateFlags(t, dt) {
+            const w = windStrength(t);
+            for (const f of flags) {
+                // Ease in and out gently: a gust building, then dying away.
+                f.boost += (f.boostTarget - f.boost) * (1 - Math.exp(-dt * 0.9));
+                // While a syllable is chosen, the other flags fall still and hang.
+                f.calm += (f.calmTarget - f.calm) * (1 - Math.exp(-dt * 0.8));
+                const m = 1 - 0.92 * f.calm;
+                // Flutter phase advances at the current rate, so changing the rate
+                // speeds it up smoothly instead of jumping.
+                f.flutter = (f.flutter || 0) + dt * (3.3 + 2.5 * f.boost);
+                const W = w * (1 + 4.5 * f.boost) * m;
+                // The whole flag swings about the string.
+                f.mesh.rotation.x = f.lean - (0.04 + 0.2 * W) + 0.05 * Math.sin(t * 1.1 + f.phase) * (0.6 + W) * m;
+                const pos = f.mesh.geometry.attributes.position;
+                const arr = pos.array, base = f.base, fold = f.fold;
+                for (let i = 0, vi = 0; i < arr.length; i += 3, vi++) {
+                    const bx = base[i], by = base[i + 1];
+                    const v = -by / FLAG_H;
+                    const ph = f.phase + bx * 3 - t * 1.6;
+                    arr[i] = bx + v * 0.02 * Math.sin(t * 0.8 + f.phase) * m;
+                    arr[i + 1] = by + v * v * W * 0.05;
+                    arr[i + 2] = fold[vi]
+                        + Math.pow(v, 1.3) * (0.03 * m + 0.07 * W) * Math.sin(ph + v * 2.6)
+                        + v * v * (0.018 * m + 0.06 * f.boost) * Math.sin(f.flutter + bx * 9 + f.phase);
+                }
+                pos.needsUpdate = true;
+                f.mesh.geometry.computeVertexNormals();
+                f.mesh.material.emissiveIntensity = 0.2 + 0.3 * f.boost;
+            }
+        }
+
+        // Juniper smoke (sang), drifting across for Hūṃ.
+        const smoke = [];
+        let smokeUntil = 0;
+        function buildSmoke() {
+            const tex = smokeTexture();
+            for (let i = 0; i < 26; i++) {
+                const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, opacity: 0 }));
+                s.userData = { age: -1, life: 9 + Math.random() * 3, vx: 0, vy: 0 };
+                flagScene.add(s);
+                smoke.push(s);
+            }
+        }
+
+        function updateSmoke(t, dt) {
+            smoke.forEach((s, i) => {
+                const u = s.userData;
+                if (u.age < 0) {
+                    if (t < smokeUntil && Math.random() < dt * 2.2) {
+                        u.age = 0;
+                        s.position.set(-6.5 + Math.random() * 1.2, -2.6 + Math.random(), -2.2 - Math.random());
+                        u.vx = 0.55 + Math.random() * 0.3;
+                        u.vy = 0.28 + Math.random() * 0.2;
+                    }
+                    s.material.opacity = 0;
+                    return;
+                }
+                u.age += dt;
+                const k = u.age / u.life;
+                if (k >= 1) { u.age = -1; s.material.opacity = 0; return; }
+                s.position.x += u.vx * dt;
+                s.position.y += (u.vy + 0.15 * Math.sin(t * 0.9 + i)) * dt;
+                const size = 1.5 + k * 4.5;
+                s.scale.set(size, size, 1);
+                s.material.opacity = Math.sin(Math.PI * k) * 0.58;
+            });
+        }
+
+        // ---------------------------------------------------------------
+        // The wheel and its mount.
+        // ---------------------------------------------------------------
+        const LID_H = 0.16;
+        const BEAM_Y = HD / 2 + LID_H + 0.35 + 0.21;
+
+        const beamTex = paintedWoodTexture('rgb(118,34,32)', 'rgba(170,80,70,0.25)', 5);
+        beamTex.repeat.set(10, 1);
+        const beam = new THREE.Mesh(
+            new THREE.BoxGeometry(40, 0.42, 0.5),
+            new THREE.MeshStandardMaterial({ map: beamTex, roughness: 0.75, metalness: 0 })
+        );
+        beam.position.y = BEAM_Y;
+        beam.castShadow = beam.receiveShadow = true;
+        scene.add(beam);
+
+        const ironMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2a2c, metalness: 0.8, roughness: 0.5 });
+        const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, BEAM_Y + 14, 16), ironMaterial);
+        rod.position.y = (BEAM_Y - 14) / 2;
+        rod.castShadow = true;
+        scene.add(rod);
+
+        const bracket = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.08, 24), ironMaterial);
+        bracket.position.y = BEAM_Y - 0.25;
+        scene.add(bracket);
+
+        // Pivot for the slight wobble of a wheel on a rod, then the spin.
+        const wobbleGroup = new THREE.Group();
+        const wheelGroup = new THREE.Group();
+        wobbleGroup.add(wheelGroup);
+        scene.add(wobbleGroup);
+
+        const shellGroup = new THREE.Group(); // drum, lid, rims, striker
+        const baseGroup = new THREE.Group();  // plate, cross handles, hub
+        wheelGroup.add(shellGroup, baseGroup);
+
+        const darkBrass = new THREE.MeshStandardMaterial({ color: 0x3d3020, metalness: 1.0, roughness: 0.5, side: THREE.DoubleSide });
+        const brassTrim = new THREE.MeshStandardMaterial({ color: 0xb08f50, metalness: 1.0, roughness: 0.38 });
+
+        const lidProfile = [
+            [R + 0.02, 0.0], [R - 0.04, 0.02], [1.0, 0.06], [0.45, 0.1],
+            [0.16, 0.13], [0.14, LID_H], [0.0, LID_H]
+        ].map(([x, y]) => new THREE.Vector2(x, y));
+        const lid = new THREE.Mesh(new THREE.LatheGeometry(lidProfile, 160), darkBrass);
+        lid.position.y = HD / 2;
+        lid.castShadow = lid.receiveShadow = true;
+        shellGroup.add(lid);
+
+        const topLip = new THREE.Mesh(new THREE.TorusGeometry(R + 0.005, 0.04, 16, 200), darkBrass);
+        topLip.rotation.x = Math.PI / 2;
+        topLip.position.y = HD / 2;
+        shellGroup.add(topLip);
+
+        const bottomLip = new THREE.Mesh(new THREE.TorusGeometry(R + 0.005, 0.025, 12, 200), brassTrim);
+        bottomLip.rotation.x = Math.PI / 2;
+        bottomLip.position.y = -HD / 2 + 0.01;
+        shellGroup.add(bottomLip);
+
+        const innerShell = new THREE.Mesh(
+            new THREE.CylinderGeometry(R - 0.012, R - 0.012, HD, 128, 1, true),
+            new THREE.MeshStandardMaterial({ color: 0x4a3a22, metalness: 1.0, roughness: 0.55, side: THREE.BackSide })
+        );
+        shellGroup.add(innerShell);
+
+        // Invisible low-poly stand-in for tapping syllables on the drum.
+        const pickProxy = new THREE.Mesh(
+            new THREE.CylinderGeometry(R + 0.01, R + 0.01, HD, 128, 1, true),
+            new THREE.MeshBasicMaterial({ visible: false })
+        );
+        shellGroup.add(pickProxy);
+
+        // Bell striker: a pin standing on the lid near the rim.
+        const BELL_RADIUS = 1.2;
+        // Tall enough that its tip catches the bell's clapper as it passes.
+        const striker = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.18, 10), brassTrim);
+        striker.position.set(0, HD / 2 + 0.04 + 0.09, BELL_RADIUS);
+        striker.castShadow = true;
+        shellGroup.add(striker);
+
+        // Plate and red wooden cross the wheel is pushed by.
+        const plate = new THREE.Mesh(
+            new THREE.CylinderGeometry(R + 0.07, R + 0.07, 0.025, 160),
+            new THREE.MeshStandardMaterial({ color: 0xb9b8b2, metalness: 0.9, roughness: 0.35 })
+        );
+        plate.position.y = -HD / 2 - 0.0125;
+        plate.castShadow = plate.receiveShadow = true;
+        baseGroup.add(plate);
+
+        const ARM_L = 1.42 * 2 * R, ARM_T = 0.22, ARM_W = 0.34;
+        const hl = ARM_L / 2;
+        const armShape = new THREE.Shape();
+        armShape.moveTo(-hl, 0);
+        armShape.lineTo(hl, 0);
+        armShape.lineTo(hl, -0.1);
+        armShape.lineTo(hl - 0.18, -0.1);
+        armShape.quadraticCurveTo(hl - 0.2, -0.1, hl - 0.22, -0.13);
+        armShape.lineTo(hl - 0.26, -ARM_T);
+        armShape.lineTo(-hl + 0.26, -ARM_T);
+        armShape.lineTo(-hl + 0.22, -0.13);
+        armShape.quadraticCurveTo(-hl + 0.2, -0.1, -hl + 0.18, -0.1);
+        armShape.lineTo(-hl, -0.1);
+        armShape.closePath();
+        const armGeo = new THREE.ExtrudeGeometry(armShape, {
+            depth: ARM_W, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012, bevelSegments: 2, curveSegments: 8
+        });
+        armGeo.translate(0, 0, -ARM_W / 2);
+
+        const woodTex = paintedWoodTexture('rgb(176,52,44)', 'rgba(232,142,122,0.3)', 9);
+        woodTex.repeat.set(0.5, 0.5);
+        const woodMaterial = new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.72, metalness: 0, bumpMap: woodTex, bumpScale: 0.6 });
+
+        const crossTop = -HD / 2 - 0.025;
+        const armA = new THREE.Mesh(armGeo, woodMaterial);
+        armA.position.y = crossTop - 0.004;
+        const armB = new THREE.Mesh(armGeo, woodMaterial);
+        armB.rotation.y = Math.PI / 2;
+        armB.position.y = crossTop;
+        const hub = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.34, 0.42), woodMaterial);
+        hub.position.y = crossTop - ARM_T - 0.17;
+        for (const m of [armA, armB, hub]) {
+            m.castShadow = m.receiveShadow = true;
+            baseGroup.add(m);
+        }
+
+        // Paper scroll inside the drum.
+        const scroll = new THREE.Mesh(
+            new THREE.CylinderGeometry(R - 0.22, R - 0.22, HD - 0.3, 96),
+            [0, 1, 2].map(() => new THREE.MeshStandardMaterial({ roughness: 0.95 }))
+        );
+        scroll.castShadow = scroll.receiveShadow = true;
+        wheelGroup.add(scroll);
+
+        // The bell, hung from the beam on the right; the striker passes it once a turn.
+        const BELL_AZIMUTH = Math.PI / 2;
+        const bellPivot = new THREE.Group();
+        bellPivot.position.set(BELL_RADIUS * Math.sin(BELL_AZIMUTH), HD / 2 + 0.4, BELL_RADIUS * Math.cos(BELL_AZIMUTH));
+        scene.add(bellPivot);
+        const hanger = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, BEAM_Y - 0.21 - bellPivot.position.y, 6), ironMaterial);
+        hanger.position.set(bellPivot.position.x, (BEAM_Y - 0.21 + bellPivot.position.y) / 2, bellPivot.position.z);
+        scene.add(hanger);
+        const bellShape = [[0.0, 0.0], [0.018, 0.0], [0.03, -0.02], [0.042, -0.07], [0.058, -0.13], [0.072, -0.155], [0.068, -0.162]]
+            .map(([x, y]) => new THREE.Vector2(x, y));
+        const bellBody = new THREE.Mesh(new THREE.LatheGeometry(bellShape, 48),
+            new THREE.MeshStandardMaterial({ color: 0xb8964f, metalness: 1, roughness: 0.3, side: THREE.DoubleSide }));
+        bellBody.castShadow = true;
+        bellPivot.add(bellBody);
+        const clapperPivot = new THREE.Group();
+        clapperPivot.position.y = -0.03;
+        bellPivot.add(clapperPivot);
+        const clapperRod = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.15, 6), ironMaterial);
+        clapperRod.position.y = -0.075;
+        const clapperBall = new THREE.Mesh(new THREE.SphereGeometry(0.018, 12, 8), ironMaterial);
+        clapperBall.position.y = -0.155;
+        clapperPivot.add(clapperRod, clapperBall);
+
+        function swing(p, w0, damping, dt) {
+            p.v += (-w0 * w0 * p.a - damping * p.v) * dt;
+            p.a += p.v * dt;
+        }
+
+        // ---------------------------------------------------------------
+        // Bell sound: a small brass bell, synthesised from its partials,
+        // each a close pair so the tone beats the way real bells do.
+        // ---------------------------------------------------------------
+        let audioCtx = null, master = null;
+        let muted = storage.get('mani.muted', false);
+        const soundButton = document.getElementById('sound');
+
+        function reflectMuted() {
+            soundButton.classList.toggle('muted', muted);
+            soundButton.setAttribute('aria-label', muted ? 'Unmute the bell' : 'Mute the bell');
+            if (master) master.gain.setTargetAtTime(muted ? 0 : 0.9, audioCtx.currentTime, 0.05);
+        }
+        reflectMuted();
+
+        soundButton.addEventListener('click', () => {
+            muted = !muted;
+            storage.set('mani.muted', muted);
+            ensureAudio();
+            reflectMuted();
+        });
+
+        function ensureAudio() {
+            if (!audioCtx) {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if (!Ctx) return;
+                audioCtx = new Ctx();
+                master = audioCtx.createGain();
+                master.gain.value = muted ? 0 : 0.9;
+                master.connect(audioCtx.destination);
+                // A little open-air reflection.
+                const len = Math.floor(audioCtx.sampleRate * 1.2);
+                const ir = audioCtx.createBuffer(2, len, audioCtx.sampleRate);
+                for (let ch = 0; ch < 2; ch++) {
+                    const data = ir.getChannelData(ch);
+                    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.5) * 0.5;
+                }
+                const verb = audioCtx.createConvolver();
+                verb.buffer = ir;
+                const wet = audioCtx.createGain();
+                wet.gain.value = 0.16;
+                master.connect(verb);
+                verb.connect(wet);
+                wet.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function ringBell(strength, pitch = 1) {
+            if (!audioCtx || muted) return;
+            const t = audioCtx.currentTime + 0.005;
+            const f0 = 1240 * pitch * (1 + (Math.random() - 0.5) * 0.012);
+            const partials = [[1, 1, 2.6], [2.02, 0.42, 1.5], [2.76, 0.36, 1.1], [3.95, 0.2, 0.75], [5.4, 0.12, 0.5], [6.88, 0.06, 0.35]];
+            const out = audioCtx.createGain();
+            out.gain.value = 0.16 * (0.35 + 0.65 * strength);
+            out.connect(master);
+            for (const [ratio, amp, decay] of partials) {
+                for (const detune of [0, 0.0014]) {
+                    const osc = audioCtx.createOscillator();
+                    osc.frequency.value = f0 * ratio * (1 + detune);
+                    const g = audioCtx.createGain();
+                    const d = decay * (0.7 + 0.5 * strength);
+                    g.gain.setValueAtTime(0, t);
+                    g.gain.linearRampToValueAtTime(amp * 0.5, t + 0.002);
+                    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+                    osc.connect(g); g.connect(out);
+                    osc.start(t); osc.stop(t + d + 0.05);
+                }
+            }
+            // The tick of the clapper meeting brass.
+            const n = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * 0.03), audioCtx.sampleRate);
+            const nd = n.getChannelData(0);
+            for (let i = 0; i < nd.length; i++) nd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / nd.length, 4);
+            const src = audioCtx.createBufferSource();
+            src.buffer = n;
+            const bp = audioCtx.createBiquadFilter();
+            bp.type = 'bandpass'; bp.frequency.value = 4200; bp.Q.value = 0.9;
+            const ng = audioCtx.createGain();
+            ng.gain.value = 0.25 * strength;
+            src.connect(bp); bp.connect(ng); ng.connect(out);
+            src.start(t);
+        }
+
+        // ---------------------------------------------------------------
+        // Spin physics: the hand grips the drum while dragging; released,
+        // the wheel coasts against bearing friction and a little air drag.
+        // ---------------------------------------------------------------
+        // A heavy brass drum full of paper: it can't be whipped round, lags the
+        // hand a little, and coasts slowly for a long time.
+        const BEARING = 0.45, AIR = 0.09, GRIP_K = 90, MAX_OMEGA = 4, FLICK_CARRY = 0.75;
+        let userTouched = false;
+
+        function makeWheelState(x, spinGroup, wobble, bell, clapper, theta, omega, pitch) {
+            return {
+                x, spin: spinGroup, wobble, bellPivot: bell, clapperPivot: clapper, pitch, active: true,
+                phys: { theta, omega, target: theta, grabX: 0, grabTheta: theta, radiusPx: 200, centreX: 0, trail: [], dragging: false },
+                rock: { a: 0, v: 0 }, bellSwing: { a: 0, v: 0 }, clapperSwing: { a: 0, v: 0 },
+                countBase: theta, ccwProgress: 0,
+            };
+        }
+        // The centre wheel; the side wheels are added once the drum is built.
+        const wheels = [makeWheelState(0, wheelGroup, wobbleGroup, bellPivot, clapperPivot, 0, -1.1, 1)];
+        const activeWheels = () => wheels.filter(w => w.active);
+
+        // Where on the drum's curved face a screen x falls, as an angle. A point
+        // near the edge moves across the screen more slowly than one in the
+        // middle, so this keeps the spot you grabbed under your finger. Off the
+        // drum, the finger isn't on the surface, so it carries on at the plain rate.
+        function surfaceAngle(phys, clientX) {
+            const u = (clientX - phys.centreX) / phys.radiusPx;
+            if (Math.abs(u) <= 1) return Math.asin(u);
+            return Math.sign(u) * (Math.PI / 2 + (Math.abs(u) - 1));
+        }
+
+        function stepPhysics(dt) {
+            for (const w of activeWheels()) stepWheel(w, dt);
+        }
+
+        function stepWheel(w, dt) {
+            const phys = w.phys, rock = w.rock;
+            const steps = Math.max(1, Math.ceil(dt / (1 / 240)));
+            const h = dt / steps;
+            for (let s = 0; s < steps; s++) {
+                if (phys.dragging) {
+                    phys.omega += (GRIP_K * (phys.target - phys.theta) - 2 * Math.sqrt(GRIP_K) * phys.omega) * h;
+                } else if (phys.omega !== 0) {
+                    const dec = (BEARING + AIR * Math.abs(phys.omega)) * h;
+                    if (Math.abs(phys.omega) <= dec) {
+                        // Settling: a small shudder as the bearing takes hold.
+                        rock.v += Math.sign(phys.omega) * 0.05;
+                        phys.omega = 0;
+                    } else {
+                        phys.omega -= Math.sign(phys.omega) * dec;
+                    }
+                }
+                phys.omega = Math.max(-MAX_OMEGA, Math.min(MAX_OMEGA, phys.omega));
+                const before = phys.theta;
+                phys.theta += phys.omega * h;
+                onRotate(w, before, phys.theta);
+                swing(rock, 16, 5, h);
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // Counting clockwise turns; noticing counter-clockwise ones.
+        // ---------------------------------------------------------------
+        let turns = storage.get('mani.turns', 0);
+
+        function onRotate(w, before, after) {
+            // The striker passes the bell.
+            const k0 = Math.floor((before - BELL_AZIMUTH) / (2 * Math.PI));
+            const k1 = Math.floor((after - BELL_AZIMUTH) / (2 * Math.PI));
+            if (k0 !== k1) {
+                const strength = clamp01(Math.abs(w.phys.omega) / 7);
+                const dir = Math.sign(after - before);
+                // The pin knocks the clapper, which knocks the bell: both swing
+                // away in the pin's direction, harder the faster it turns.
+                w.clapperSwing.v += dir * (4 + 8 * strength);
+                w.bellSwing.v += dir * (0.6 + 1.4 * strength);
+                w.bellShiver = Math.max(w.bellShiver || 0, 0.4 + 0.6 * strength);
+                if (Math.abs(w.phys.omega) > 0.08) ringBell(Math.max(0.12, strength), w.pitch);
+            }
+
+            // Clockwise progress is measured from countBase; clockwise from above is decreasing theta.
+            if (!userTouched) { w.countBase = after; return; }
+            if (after > w.countBase) w.countBase = after;
+            while (w.countBase - after >= 2 * Math.PI) {
+                w.countBase -= 2 * Math.PI;
+                addTurn();
+            }
+            w.ccwProgress = Math.max(0, w.ccwProgress + (after - before));
+            // About a quarter turn the wrong way is enough to respond.
+            if (w.ccwProgress >= Math.PI / 2) {
+                w.ccwProgress = 0;
+                onCounterTurn(w);
+            }
+        }
+
+        const tibDigits = n => String(n).replace(/\d/g, d => String.fromCharCode(0x0F20 + Number(d)));
+        function renderCount(animate) {
+            const tib = document.getElementById('count-tib');
+            tib.textContent = tibDigits(turns);
+            document.getElementById('count-lat').textContent = `${turns} ${turns === 1 ? 'turn' : 'turns'}`;
+            if (animate) {
+                tib.classList.remove('pop');
+                void tib.offsetWidth;
+                tib.classList.add('pop');
+            }
+        }
+
+        function addTurn() {
+            turns++;
+            storage.set('mani.turns', turns);
+            renderCount(true);
+        }
+
+        // A counter-clockwise turn gets a gentle, physical response: the wheel
+        // slows, pauses and eases itself back clockwise, with an arrow and a
+        // short caption under it.
+        const ccwNote = document.getElementById('ccw-note');
+        const ccwArcLine = document.getElementById('ccw-arc-line');
+        const ccwArcHead = document.getElementById('ccw-arc-head');
+        let ccwNoteTimer = 0, ccwArc = null, ccwNoteWheel = null;
+
+        // The text panel fades out until the note has gone.
+        function showCcwNote(w, html, ms) {
+            ccwNoteWheel = w;
+            ccwNote.innerHTML = html;
+            placeCcwNote();
+            ccwNote.classList.add('show');
+            document.body.classList.add('ccw-on');
+            clearTimeout(ccwNoteTimer);
+            ccwNoteTimer = setTimeout(() => {
+                ccwNote.classList.remove('show');
+                document.body.classList.remove('ccw-on');
+            }, ms);
+        }
+
+        // A correction every time it's needed.
+        function onCounterTurn(w) {
+            if (!w.easeBack) w.easeBack = { phase: 'brake', t: 0, from: w.phys.theta };
+        }
+
+        // G: brake to a stop, pause, then a gentle clockwise push.
+        function stepEaseBack(w, dt) {
+            const e = w.easeBack, phys = w.phys;
+            if (phys.dragging) {
+                // Never fight the visitor's hand: wait for them to let go, and drop
+                // the correction if they turn it back clockwise themselves.
+                if (e.phase === 'push' || phys.theta < e.from - 0.35) w.easeBack = null;
+                else { e.phase = 'brake'; e.t = 0; }
+                return;
+            }
+            if (e.phase === 'brake' && phys.omega < -0.05) { w.easeBack = null; return; } // already turning clockwise
+            e.t += dt;
+            if (e.phase === 'brake') {
+                const dec = 9 * dt;
+                phys.omega = Math.abs(phys.omega) <= dec ? 0 : phys.omega - Math.sign(phys.omega) * dec;
+                if (phys.omega === 0) { e.phase = 'pause'; e.t = 0; }
+            } else if (e.phase === 'pause' && e.t > 0.3) {
+                phys.omega = -1.5; // clockwise, seen from above
+                e.phase = 'push'; e.t = 0;
+                ccwArc = { w, t: 0 };
+                showCcwNote(w, 'It turns clockwise, following the sun.', 4000);
+            } else if (e.phase === 'push' && e.t > 2.5) {
+                w.easeBack = null;
+            }
+        }
+
+        const ccwArcY = () => crossTop - ARM_T - 0.2 + baseGroup.position.y;
+        // The side of a wheel that faces the camera (side wheels are seen at an angle).
+        const facingAngle = w => Math.atan2(camera.position.x - w.x, camera.position.z);
+
+        // G: an arrow drawn around the front of the handles, right to left,
+        // the way the front of the wheel moves when turned clockwise.
+        function updateCcwArc(dt) {
+            if (!ccwArc) { ccwArcLine.removeAttribute('d'); ccwArcHead.removeAttribute('d'); return; }
+            ccwArc.t += dt;
+            const draw = Math.min(1, ccwArc.t / 1.1);
+            const fade = ccwArc.t < 3.2 ? 1 : Math.max(0, 1 - (ccwArc.t - 3.2) / 0.8);
+            if (fade <= 0) { ccwArc = null; return; }
+            // Below the handles, and only across the front, so it reads as
+            // "the near side moves this way": right to left for clockwise.
+            const w = ccwArc.w, r = hl * 1.1, y = ccwArcY();
+            const face = facingAngle(w);
+            const pts = [];
+            for (let i = 0; i <= 40; i++) {
+                const th = face + THREE.MathUtils.degToRad(55 - 110 * i / 40 * draw);
+                pts.push(toScreen(wv(w.x + Math.sin(th) * r, y, Math.cos(th) * r)));
+            }
+            ccwArcLine.setAttribute('d', 'M ' + pts.map(p => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' L '));
+            // The head points along the arc's final direction of travel.
+            const a = pts[pts.length - 1], b = pts[pts.length - 2];
+            const ang = Math.atan2(a.y - b.y, a.x - b.x), L = 13;
+            const p1 = { x: a.x - L * Math.cos(ang - 0.5), y: a.y - L * Math.sin(ang - 0.5) };
+            const p2 = { x: a.x - L * Math.cos(ang + 0.5), y: a.y - L * Math.sin(ang + 0.5) };
+            ccwArcHead.setAttribute('d', `M ${p1.x} ${p1.y} L ${a.x} ${a.y} L ${p2.x} ${p2.y}`);
+            ccwArcLine.style.opacity = ccwArcHead.style.opacity = String(fade);
+        }
+
+        // The message sits just under the arrow, below the wheel that was turned.
+        function placeCcwNote() {
+            if (!ccwNoteWheel) return;
+            const face = facingAngle(ccwNoteWheel), r = hl * 1.1;
+            const p = toScreen(wv(ccwNoteWheel.x + Math.sin(face) * r, ccwArcY(), Math.cos(face) * r));
+            p.y += 22;
+            const half = ccwNote.offsetWidth / 2;
+            const x = Math.max(16 + half, Math.min(window.innerWidth - 16 - half, p.x));
+            ccwNote.style.left = `${x}px`;
+            ccwNote.style.top = `${p.y}px`;
+        }
+
+        function updateCcwEffects(dt) {
+            if (ccwNote.classList.contains('show')) placeCcwNote();
+            for (const w of wheels) if (w.easeBack) stepEaseBack(w, dt);
+            updateCcwArc(dt);
+        }
+
+        // ---------------------------------------------------------------
+        // Chapters, labels and the six syllables.
+        // ---------------------------------------------------------------
+        const CHAPTERS = [
+            {
+                title: '<span class="tib" lang="bo">མ་ཎི་འཁོར་ལོ།</span> Mani khorlo',
+                body: [
+                    'A prayer wheel of repoussé brass: its letters and beads are hammered out from behind. Each turn is held to be as meritorious as reciting every mantra on the scroll inside.',
+                    'Turn it clockwise, the direction the mantras are written, following the sun.'
+                ]
+            },
+            {
+                title: 'Six syllables, six realms',
+                body: [
+                    'In Tibetan practice each syllable sends light of its own colour into one of the six realms of rebirth, easing the affliction that binds it.',
+                    'Tap a syllable on the drum.'
+                ]
+            },
+            {
+                title: 'What turns inside',
+                body: [
+                    'A tight roll of paper printed with the mantra, wound around a central axle known as the life tree. Filling a wheel with mantras mirrors the way statues are consecrated.',
+                    'Wheels are also turned by flowing streams, by the wind, and by the heat of a lamp.'
+                ]
+            },
+        ];
+
+        const chapterEl = document.getElementById('chapter');
+        let chapterShown = -1, selected = -1;
+
+        function setChapterHTML(html) {
+            chapterEl.classList.add('fading');
+            setTimeout(() => {
+                chapterEl.innerHTML = html;
+                chapterEl.classList.remove('fading');
+            }, chapterShown === -1 ? 0 : 350);
+        }
+
+        function showChapter(i) {
+            if (chapterShown === i && selected < 0) return;
+            const c = CHAPTERS[i];
+            setChapterHTML(`<h2>${c.title}</h2>${c.body.map(p => `<p>${p}</p>`).join('')}`);
+            chapterShown = i;
+        }
+
+        function showSyllable(i) {
+            const s = SYLLABLES[i];
+            let flagLine;
+            if (s.flag) {
+                flagLine = `The ${s.flag} prayer flags stir. On the flags this colour stands for ${FLAG_ELEMENT[s.flag]}, not the syllable; the two only share it.`;
+            } else {
+                flagLine = 'No prayer flag is black. Instead, juniper smoke drifts past: sang, an offering burned at Himalayan shrines.';
+            }
+            const stack = (i === 3 || i === 4)
+                ? `<p>Written as one stack, <span lang="bo" style="font-family:'Noto Serif Tibetan',serif">པདྨེ</span>: Pad and Me share it.</p>` : '';
+            setChapterHTML(`<span class="syllable-big" lang="bo">${s.tib}</span>
+                <h2>${s.rom}</h2>
+                <p><span class="swatch" style="background:${s.hex}"></span>${s.colour} light into ${s.realm}, easing ${s.affliction}.</p>
+                ${stack}<p>${flagLine}</p>`);
+        }
+
+        // A tapped syllable is painted in its colour, like the painted mantras
+        // on many Ladakhi wheels: coloured, satin, non-metallic enamel that
+        // appears on tap. The centre drum paints on its own copy
+        // of the colour and surface maps, so the side drums stay plain brass.
+        let drumMaterial = null, syllableBoxes = [], drumMaps = null, paint = null;
+
+        // The paint follows the syllable's own letterform: it's drawn again,
+        // alone, exactly as it was raised on the drum, and used as the mask.
+        function startPaint(box, hex) {
+            if (paint) restorePaint();
+            const { colorC, roughC } = drumMaps;
+            const pad = 60;
+            const x0 = Math.floor(box.x0 - pad), y0 = Math.max(0, Math.floor(box.y0 - 30));
+            const w = Math.ceil(box.x1 - box.x0 + 2 * pad), h = Math.min(TH - y0, Math.ceil(box.y1 - box.y0 + 60));
+            const c = new THREE.Color(hex).convertLinearToSRGB();
+            const rgb = [c.r * 255, c.g * 255, c.b * 255];
+            const cctx = colorC.getContext('2d'), rctx = roughC.getContext('2d');
+            const regions = [x0, x0 + TW, x0 - TW].filter(x => x + w > 0 && x < TW).map(x => ({
+                x, col: cctx.getImageData(x, y0, w, h), orm: rctx.getImageData(x, y0, w, h),
+            }));
+            const mc = makeCanvas(w, h), mctx = mc.getContext('2d');
+            mctx.translate(-x0, -y0);
+            const g = box.glyph;
+            mctx.beginPath();
+            mctx.rect(Math.max(x0, box.clip[0]), y0, Math.min(x0 + w, box.clip[1]) - Math.max(x0, box.clip[0]), h);
+            mctx.clip();
+            mctx.filter = 'blur(2px)';
+            mctx.fillStyle = mctx.strokeStyle = '#fff';
+            mctx.font = `700 ${box.size}px ${TIBETAN}`;
+            mctx.lineWidth = box.size * 0.025;
+            mctx.lineJoin = 'round';
+            mctx.fillText(g.text, g.x, g.y);
+            mctx.strokeText(g.text, g.x, g.y);
+            const md = mctx.getImageData(0, 0, w, h).data;
+            const own = new Float32Array(w * h);
+            for (let i = 0; i < own.length; i++) own[i] = Math.min(1, md[i * 4 + 3] / 255 * 1.3);
+            paint = { regions, y0, w, h, rgb, own };
+            for (const r of paint.regions) {
+                const col = new ImageData(new Uint8ClampedArray(r.col.data), w, h);
+                const orm = new ImageData(new Uint8ClampedArray(r.orm.data), w, h);
+                for (let i = 0; i < own.length; i++) {
+                    const m = own[i];
+                    if (m <= 0) continue;
+                    const o = i * 4;
+                    for (let j = 0; j < 3; j++) col.data[o + j] += (rgb[j] - col.data[o + j]) * m;
+                    orm.data[o + 1] += (150 - orm.data[o + 1]) * m; // roughness: satin enamel
+                    orm.data[o + 2] += (20 - orm.data[o + 2]) * m;  // metalness: mostly paint
+                }
+                cctx.putImageData(col, r.x, y0);
+                rctx.putImageData(orm, r.x, y0);
+            }
+            // One texture update per tap; re-uploading every frame flickered.
+            drumMaps.mapTex.needsUpdate = true;
+            drumMaps.ormTex.needsUpdate = true;
+        }
+
+        function restorePaint() {
+            for (const r of paint.regions) {
+                drumMaps.colorC.getContext('2d').putImageData(r.col, r.x, paint.y0);
+                drumMaps.roughC.getContext('2d').putImageData(r.orm, r.x, paint.y0);
+            }
+            drumMaps.mapTex.needsUpdate = true;
+            drumMaps.ormTex.needsUpdate = true;
+            paint = null;
+        }
+
+
+        function selectSyllable(i, box) {
+            selected = i;
+            startPaint(box, SYLLABLES[i].hex);
+            for (const f of flags) {
+                const match = f.colour === SYLLABLES[i].flag;
+                f.boostTarget = match ? 1 : 0;
+                f.calmTarget = match ? 0 : 1;
+            }
+            if (!SYLLABLES[i].flag) smokeUntil = clock.getElapsedTime() + 7;
+            showSyllable(i);
+        }
+
+        function clearSyllable() {
+            if (selected < 0) return;
+            selected = -1;
+            if (paint) restorePaint();
+            for (const f of flags) { f.boostTarget = 0; f.calmTarget = 0; }
+        }
+
+        const raycaster = new THREE.Raycaster();
+        const ndc = new THREE.Vector2();
+        function syllableAt(clientX, clientY) {
+            if (!drumMaterial) return null;
+            ndc.set(clientX / window.innerWidth * 2 - 1, -(clientY / window.innerHeight) * 2 + 1);
+            raycaster.setFromCamera(ndc, camera);
+            const hit = raycaster.intersectObject(pickProxy, false)[0];
+            if (!hit || !hit.uv) return null;
+            const px = hit.uv.x * TW, py = (1 - hit.uv.y) * TH;
+            for (const b of syllableBoxes) {
+                if (py < b.y0 || py > b.y1) continue;
+                const rel = wrapX(px - b.x0);
+                if (rel <= b.x1 - b.x0) return b;
+            }
+            return null;
+        }
+
+        // Details on demand. The "i" button (or the I key) lets the scene fall
+        // into warm shadow, with pools of butter-lamp light on each part.
+        // Wide screens light all four at once; narrow ones light one at a
+        // time, stepped with ‹ ›, swipes or the arrow keys.
+        const infoToggle = document.getElementById('info-toggle');
+        const infoLayer = document.getElementById('info-layer');
+        const infoLabels = Object.fromEntries([...infoLayer.querySelectorAll('.info-label')].map(el => [el.dataset.part, el]));
+        const INFO_PARTS = ['mantra', 'bell', 'handles', 'flags'];
+        const infoStepper = document.getElementById('info-stepper');
+        const lampBlur = document.getElementById('lamp-blur');
+        const SVGNS = 'http://www.w3.org/2000/svg';
+        const svgEl = (tag, parent, attrs = {}) => {
+            const el = document.createElementNS(SVGNS, tag);
+            for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+            parent.appendChild(el);
+            return el;
+        };
+        const lamps = INFO_PARTS.map(() => ({
+            hole: svgEl('ellipse', document.getElementById('lamp-hole-group')),
+            glow: svgEl('ellipse', document.getElementById('lamp-glows'), { fill: 'url(#lamp-glow)' }),
+            spoke: svgEl('line', document.getElementById('lamp-spokes'), { class: 'spoke' }),
+        }));
+        let infoOn = false, infoStep = 0;
+        const pool = { x: 0, y: 0, rx: 0, ry: 0, ready: false }; // the single moving lamp on phones
+
+        const isNarrow = () => window.innerWidth < 720;
+
+        // From another view, glide back to the artifact first, then open.
+        function setInfo(on) {
+            if (on && stage !== 0) {
+                goTo(0);
+                infoPending = true;
+                return;
+            }
+            infoPending = false;
+            infoOn = on && stage === 0;
+            // Release any wheel being dragged; it coasts on as if let go.
+            if (infoOn && grabbed) { grabbed.phys.dragging = false; grabbed = null; }
+            if (infoOn) { infoStep = 0; pool.ready = false; }
+            hoveredPart = -1;
+            infoLayer.classList.toggle('on', infoOn);
+            document.body.classList.toggle('info-on', infoOn);
+            infoToggle.setAttribute('aria-pressed', String(infoOn));
+            infoToggle.setAttribute('aria-label', infoOn ? 'Close details' : 'Show details');
+            // Open, the button becomes a close mark.
+            infoToggle.innerHTML = infoOn
+                ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>'
+                : '<span class="info-i" aria-hidden="true">i</span>';
+            infoLayer.setAttribute('aria-hidden', String(!infoOn));
+        }
+
+        function stepInfo(dir) {
+            if (!infoOn || !isNarrow()) return;
+            infoStep = (infoStep + dir + INFO_PARTS.length) % INFO_PARTS.length;
+        }
+
+        infoToggle.addEventListener('click', () => setInfo(!infoOn));
+        window.addEventListener('pointermove', e => {
+            if (!infoOn || isNarrow() || !lastTargets || e.pointerType !== 'mouse') { hoveredPart = -1; return; }
+            hoveredPart = INFO_PARTS.findIndex(part => {
+                const p = lastTargets[part];
+                const dx = (e.clientX - p.x) / p.rx, dy = (e.clientY - p.y) / p.ry;
+                if (dx * dx + dy * dy <= 1) return true;
+                const r = infoLabels[part].getBoundingClientRect();
+                return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+            });
+        });
+        document.getElementById('info-prev').addEventListener('click', () => stepInfo(-1));
+        document.getElementById('info-next').addEventListener('click', () => stepInfo(1));
+        window.addEventListener('keydown', e => {
+            if (e.key === 'i' || e.key === 'I') setInfo(!infoOn);
+            else if (e.key === 'Escape') setInfo(false);
+            else if (e.key === 'ArrowRight') stepInfo(1);
+            else if (e.key === 'ArrowLeft') stepInfo(-1);
+        });
+
+        const toScreen = (v, out = new THREE.Vector3()) => {
+            out.copy(v).project(camera);
+            return { x: (out.x * 0.5 + 0.5) * window.innerWidth, y: (-out.y * 0.5 + 0.5) * window.innerHeight };
+        };
+        const wv = (x, y, z) => new THREE.Vector3(x, y, z);
+
+        // The flags lamp falls on a flag showing in the gap left of the centre wheel.
+        function visibleFlagPoint() {
+            const target = threeUp
+                ? (toScreen(wv(-WHEEL_GAP, 0, 0)).x + toScreen(wv(0, 0, 0)).x) / 2
+                : Math.max(48, toScreen(wv(0, 0, 0)).x - wheelRadiusPx(wheels[0]) * 2.2);
+            let best = null, bestD = Infinity;
+            for (const f of flags) {
+                const p = toScreen(f.holder.position.clone().add(wv(0, -FLAG_H * 0.45, 0)));
+                const d = Math.abs(p.x - target);
+                if (d < bestD) { bestD = d; best = p; }
+            }
+            return best;
+        }
+
+        // Each part: where its lamp falls, how big it is, and which way its
+        // label sits from it (as a direction).
+        function infoTargets() {
+            const Rpx = wheelRadiusPx(wheels[0]);
+            const hubY = crossTop - ARM_T - 0.17;
+            const mid = toScreen(wv(0, crossTop - 0.08, 0));
+            const flagsAt = flags.length ? visibleFlagPoint() : toScreen(wv(-3, 2.6, -4));
+            return {
+                mantra:  { ...toScreen(wv(-0.75, 0.92, 1.2)), rx: Rpx * 0.62, ry: Rpx * 0.46, dir: [-0.2, -1] },
+                bell:    { ...toScreen(bellPivot.position.clone().add(wv(0, -0.08, 0))), rx: Rpx * 0.3, ry: Rpx * 0.3, dir: [0.65, -1] },
+                handles: { x: mid.x, y: mid.y, rx: Rpx * 1.25, ry: Rpx * 0.3, dir: [0.7, 1] },
+                flags:   { ...flagsAt, rx: Rpx * 0.5, ry: Rpx * 0.38, dir: [-0.55, 1] },
+                _: { hub: toScreen(wv(0, hubY, 0.25)) },
+            };
+        }
+
+        // Steady light; a lamp flickers only while its part or label is hovered.
+        let hoveredPart = -1, lastTargets = null;
+        function flicker(t, k) {
+            if (k !== hoveredPart) return 1;
+            return 1 + 0.025 * Math.sin(t * 7.1 + k * 1.9) + 0.018 * Math.sin(t * 12.7 + k * 3.3) + 0.012 * Math.sin(t * 2.3 + k);
+        }
+
+        function placeLamp(lamp, x, y, rx, ry, f, visible) {
+            const set = (el, a) => { for (const [k, v] of Object.entries(a)) el.setAttribute(k, v); };
+            const o = visible ? '1' : '0';
+            set(lamp.hole, { cx: x, cy: y, rx: rx * f, ry: ry * f, opacity: o });
+            set(lamp.glow, { cx: x, cy: y, rx: rx * 1.35 * f, ry: ry * 1.35 * f, opacity: visible ? (0.85 + (f - 1) * 4).toFixed(3) : '0' });
+        }
+
+        const beamTopY = () => toScreen(wv(0, BEAM_Y + 0.21, 0.25)).y;
+
+        // Label beside its pool, along dir; a short spoke from the pool's edge.
+        function placeLabel(part, lamp, x, y, rx, ry, dir, visible) {
+            const el = infoLabels[part];
+            el.classList.toggle('off', !visible);
+            if (!visible) { lamp.spoke.setAttribute('opacity', '0'); return; }
+            const len = Math.hypot(dir[0], dir[1]), ux = dir[0] / len, uy = dir[1] / len;
+            const edgeX = x + ux * rx * 0.75, edgeY = y + uy * ry * 0.75;
+            const endX = edgeX + ux * 46, endY = edgeY + uy * 46;
+            const w = el.offsetWidth, h = el.offsetHeight, W = window.innerWidth, H = window.innerHeight;
+            // Upper labels sit in the sky above the beam; lower ones below.
+            let left = ux < -0.5 ? endX - w : ux < 0 ? endX - w * 0.5 : endX - w * 0.1;
+            let top = uy < 0 ? Math.min(endY - h - 6, beamTopY() - h - 22) : endY + 6;
+            left = Math.max(16, Math.min(W - w - 16, left));
+            top = Math.max(70, Math.min(H - h - 16, top));
+            el.style.left = `${left}px`;
+            el.style.top = `${top}px`;
+            const set = (a) => { for (const [k, v] of Object.entries(a)) lamp.spoke.setAttribute(k, v); };
+            const x2 = Math.max(left + 8, Math.min(left + w - 8, endX));
+            set({ x1: edgeX, y1: edgeY, x2, y2: uy < 0 ? top + h + 2 : top - 2, opacity: '1' });
+        }
+
+        function updateInfo(t, dt) {
+            if (!infoOn && !infoLayer.classList.contains('on')) return;
+            const narrow = isNarrow();
+            const T = infoTargets();
+            lastTargets = T;
+            infoStepper.classList.toggle('show', narrow);
+            lampBlur.setAttribute('stdDeviation', String(Math.max(14, wheelRadiusPx(wheels[0]) * 0.22)));
+            if (!narrow) {
+                INFO_PARTS.forEach((part, k) => {
+                    const p = T[part], f = flicker(t, k);
+                    placeLamp(lamps[k], p.x, p.y, p.rx, p.ry, f, true);
+                    placeLabel(part, lamps[k], p.x, p.y, p.rx, p.ry, p.dir, true);
+                });
+                return;
+            }
+            // Phones: one lamp glides from part to part.
+            const part = INFO_PARTS[infoStep], p = T[part];
+            const k = pool.ready ? 1 - Math.exp(-dt * 5) : 1;
+            pool.x += (p.x - pool.x) * k; pool.y += (p.y - pool.y) * k;
+            pool.rx += (p.rx - pool.rx) * k; pool.ry += (p.ry - pool.ry) * k;
+            pool.ready = true;
+            const f = flicker(t, infoStep);
+            INFO_PARTS.forEach((other, i) => {
+                if (i === 0) placeLamp(lamps[0], pool.x, pool.y, pool.rx, pool.ry, f, true);
+                else placeLamp(lamps[i], 0, 0, 0, 0, 1, false);
+                if (other !== part) placeLabel(other, lamps[i], 0, 0, 0, 0, [0, 1], false);
+            });
+            // The label sits in a fixed spot above the ‹ › controls, clear of the
+            // wheel; the lamp itself shows which part it describes.
+            const el = infoLabels[part];
+            el.classList.remove('off');
+            const H = window.innerHeight, h = el.offsetHeight;
+            el.style.left = '1.2rem';
+            el.style.top = `${H - h - 100}px`;
+            for (const l of lamps) l.spoke.setAttribute('opacity', '0');
+            document.getElementById('info-step').textContent = `${infoStep + 1} of ${INFO_PARTS.length}`;
+        }
+
+        // ---------------------------------------------------------------
+        // Input: drag sideways to turn; scroll, or swipe up and down on touch, to move between stages.
+        // ---------------------------------------------------------------
+
+        // Stages loop: past the scroll comes the artifact again, and back.
+        function goTo(next) {
+            next = ((next % VIEWS.length) + VIEWS.length) % VIEWS.length;
+            if (next === stage) return;
+            camFrom.pos.copy(camera.position);
+            camFrom.look.copy(camLook);
+            camMove.t = 0;
+            camMove.duration = 1.5 + 0.3 * Math.abs(next - stage);
+            stage = next;
+            if (stage !== 1) clearSyllable();
+            showChapter(stage);
+            setInfo(false);
+        }
+
+        function wheelRadiusPx(w) {
+            const c = new THREE.Vector3(w.x, 0, 0).project(camera);
+            const e = new THREE.Vector3(w.x + R, 0, 0).project(camera);
+            return Math.max(30, Math.abs(e.x - c.x) * 0.5 * window.innerWidth);
+        }
+
+        // The wheel nearest the pointer, left to right on screen.
+        function wheelAt(clientX) {
+            let best = wheels[0], bestD = Infinity;
+            for (const w of activeWheels()) {
+                const c = new THREE.Vector3(w.x, 0, 0).project(camera);
+                const d = Math.abs((c.x * 0.5 + 0.5) * window.innerWidth - clientX);
+                if (d < bestD) { bestD = d; best = w; }
+            }
+            return best;
+        }
+
+        const pointers = new Map();
+        let downAt = null, grabbed = null, swipeFrom = null, touchSwipe = null;
+
+        container.addEventListener('pointerdown', e => {
+            pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            container.setPointerCapture?.(e.pointerId);
+            ensureAudio();
+            userTouched = true;
+            if (pointers.size === 2) {
+                if (grabbed) grabbed.phys.dragging = false;
+                touchSwipe = null;
+                grabbed = null;
+                return;
+            }
+            // With the details showing, the wheels can't be grabbed; a swipe
+            // steps between parts instead.
+            if (infoOn) { swipeFrom = { x: e.clientX, y: e.clientY }; return; }
+            downAt = { x: e.clientX, y: e.clientY, t: performance.now() };
+            grabbed = wheelAt(e.clientX);
+            touchSwipe = e.pointerType === 'mouse' ? null
+                : { id: e.pointerId, x: e.clientX, y: e.clientY, decided: false, vertical: false, omega: grabbed.phys.omega };
+            const phys = grabbed.phys;
+            phys.dragging = true;
+            phys.radiusPx = wheelRadiusPx(grabbed);
+            phys.centreX = (new THREE.Vector3(grabbed.x, 0, 0).project(camera).x * 0.5 + 0.5) * window.innerWidth;
+            phys.grabX = e.clientX;
+            phys.grabTheta = phys.theta;
+            phys.target = phys.theta;
+            phys.trail = [{ t: e.timeStamp, a: phys.theta }];
+        });
+
+        window.addEventListener('pointermove', e => {
+            if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (pointers.size === 2) return;
+            // Touch: decide early whether a drag is a sideways turn of the wheel
+            // or a vertical swipe between views. A swipe lets go of the wheel.
+            if (touchSwipe && !touchSwipe.decided && e.pointerId === touchSwipe.id) {
+                const dx = e.clientX - touchSwipe.x, dy = e.clientY - touchSwipe.y;
+                if (Math.hypot(dx, dy) > 14) {
+                    touchSwipe.decided = true;
+                    touchSwipe.vertical = Math.abs(dy) > Math.abs(dx) * 1.3;
+                    if (touchSwipe.vertical && grabbed) {
+                        grabbed.phys.dragging = false;
+                        grabbed.phys.omega = touchSwipe.omega;
+                        grabbed.phys.target = grabbed.phys.theta;
+                        grabbed = null;
+                        downAt = null;
+                    }
+                }
+            }
+            if (grabbed && grabbed.phys.dragging) {
+                const phys = grabbed.phys;
+                phys.target = phys.grabTheta + surfaceAngle(phys, e.clientX) - surfaceAngle(phys, phys.grabX);
+                // Recent hand positions, to measure the flick on release.
+                const now = e.timeStamp; // when the movement happened, not when we got to it
+                phys.trail.push({ t: now, a: phys.target });
+                while (phys.trail.length > 2 && now - phys.trail[0].t > 100) phys.trail.shift();
+            } else if (stage === 1 && e.pointerType === 'mouse') {
+                container.classList.toggle('pointing', !!syllableAt(e.clientX, e.clientY));
+            }
+        });
+
+        function endPointer(e) {
+            if (swipeFrom) {
+                const dx = e.clientX - swipeFrom.x, dy = e.clientY - swipeFrom.y;
+                if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) stepInfo(dx < 0 ? 1 : -1);
+                swipeFrom = null;
+            }
+            const wasPinch = pointers.size === 2;
+            pointers.delete(e.pointerId);
+            if (touchSwipe && touchSwipe.id === e.pointerId) {
+                const dy = e.clientY - touchSwipe.y, vertical = touchSwipe.vertical;
+                touchSwipe = null;
+                if (vertical) {
+                    if (!infoOn && Math.abs(dy) > 40) goTo(stage + (dy < 0 ? 1 : -1));
+                    return;
+                }
+            }
+            if (wasPinch) return;
+            if (!grabbed || !grabbed.phys.dragging) return;
+            // The wheel leaves your hand at your hand's speed, measured from the
+            // last tenth of a second of movement, so a flick carries the same
+            // momentum at any frame rate.
+            const phys = grabbed.phys, trail = phys.trail, now = e.timeStamp;
+            if (trail.length >= 2 && now - trail[trail.length - 1].t < 60) {
+                const a = trail[0], b = trail[trail.length - 1];
+                const span = (b.t - a.t) / 1000;
+                if (span > 0.012) phys.omega = Math.max(-MAX_OMEGA, Math.min(MAX_OMEGA, FLICK_CARRY * (b.a - a.a) / span));
+            } else if (trail.length && now - trail[trail.length - 1].t >= 60) {
+                phys.omega *= 0.3; // the hand had stopped before letting go
+            }
+            phys.dragging = false;
+            grabbed = null;
+            if (downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 6 && performance.now() - downAt.t < 450) {
+                if (stage === 1) {
+                    const box = syllableAt(e.clientX, e.clientY);
+                    if (box) selectSyllable(box.syl, box);
+                }
+            }
+            downAt = null;
+        }
+        window.addEventListener('pointerup', endPointer);
+        window.addEventListener('pointercancel', endPointer);
+
+        // One scroll gesture moves one stage. The gesture stays "used" until
+        // the wheel has been quiet for a moment, so trackpad momentum can't
+        // carry on into the next stage.
+        let wheelAcc = 0, wheelUsed = false, wheelQuiet = 0;
+        window.addEventListener('wheel', e => {
+            e.preventDefault();
+            const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+            clearTimeout(wheelQuiet);
+            wheelQuiet = setTimeout(() => { wheelUsed = false; wheelAcc = 0; }, 240);
+            // The camera stays put while the details are showing.
+            if (wheelUsed || infoOn) return;
+            wheelAcc += dy;
+            if (Math.abs(wheelAcc) > 40) {
+                wheelUsed = true;
+                goTo(stage + Math.sign(wheelAcc));
+            }
+        }, { passive: false });
+
+        window.addEventListener('keydown', e => {
+            if (infoOn) return;
+            if (e.key === 'ArrowDown' || e.key === 'PageDown') goTo(stage + 1);
+            else if (e.key === 'ArrowUp' || e.key === 'PageUp') goTo(stage - 1);
+        });
+
+        // ---------------------------------------------------------------
+        // Three wheels in a row on wide screens: copies of the centre wheel
+        // either side, sharing its geometry and textures. Phones keep one.
+        // ---------------------------------------------------------------
+        const WHEEL_GAP = 5.06;
+        const sideGroup = new THREE.Group();
+        let threeUp = false;
+
+        function buildSideWheels() {
+            // Plain brass: a tapped syllable is painted only on the centre wheel.
+            const sideDrum = drumMaterial.clone();
+            sideDrum.map = drumMaps.plainMapTex;
+            sideDrum.roughnessMap = sideDrum.metalnessMap = sideDrum.aoMap = drumMaps.plainOrmTex;
+            for (const [x, theta, pitch] of [[-WHEEL_GAP, 1.9, 0.94], [WHEEL_GAP, -2.3, 1.07]]) {
+                const wobble = wobbleGroup.clone(true);
+                wobble.position.x = x;
+                wobble.traverse(o => { if (o.material === drumMaterial) o.material = sideDrum; });
+                const bell = bellPivot.clone(true);
+                bell.position.x += x;
+                const fixtures = [rod, bracket, hanger].map(m => {
+                    const c = m.clone();
+                    c.position.x += x;
+                    return c;
+                });
+                sideGroup.add(wobble, bell, ...fixtures);
+                wheels.push(makeWheelState(x, wobble.children[0], wobble, bell, bell.children[1], theta, 0, pitch));
+            }
+            scene.add(sideGroup);
+            applyLayout();
+        }
+
+        function applyLayout() {
+            threeUp = wheels.length > 1 && window.innerWidth >= 900 && camera.aspect >= 1.2;
+            sideGroup.visible = threeUp;
+            for (const w of wheels) if (w.x !== 0) w.active = threeUp;
+            // Step back far enough to see the whole row.
+            const z = threeUp ? 17 : 12.5;
+            if (VIEWS[0].pos.z === z) return;
+            VIEWS[0].pos.z = z;
+            if (stage !== 0) return;
+            camFrom.pos.copy(camera.position);
+            camFrom.look.copy(camLook);
+            camMove.t = document.body.classList.contains('ready') ? 0 : 1;
+            camMove.duration = 1.2;
+        }
+
+        // ---------------------------------------------------------------
+        // Frame loop
+        // ---------------------------------------------------------------
+        const clock = new THREE.Clock();
+        let explodeLinear = 0, closeness = 0;
+        showChapter(0);
+
+        function frame() {
+            requestAnimationFrame(frame);
+            // Physics runs on real elapsed time (it sub-steps internally); visual
+            // easing uses a capped step so a slow frame doesn't jump.
+            const realDt = Math.min(clock.getDelta(), 0.25);
+            const dt = Math.min(realDt, 1 / 20);
+            const t = clock.getElapsedTime();
+
+            placeCamera(dt);
+            closeness += ((stage === 1 ? 1 : 0) - closeness) * (1 - Math.exp(-dt * 2));
+
+            stepPhysics(realDt);
+            for (const w of activeWheels()) {
+                const phys = w.phys;
+                w.spin.rotation.y = phys.theta + w.rock.a * 0.01;
+                const tilt = 0.0045 * Math.min(1, Math.abs(phys.omega) / 6);
+                w.wobble.rotation.x = tilt * Math.sin(phys.theta + 0.7);
+                w.wobble.rotation.z = tilt * Math.cos(phys.theta + 0.7);
+                swing(w.bellSwing, 8, 1.8, dt);
+                swing(w.clapperSwing, 11, 2.6, dt);
+                // The clapper can't swing past the bell's inner wall.
+                if (Math.abs(w.clapperSwing.a * 0.3) > 0.35) {
+                    w.clapperSwing.a = Math.sign(w.clapperSwing.a) * 0.35 / 0.3;
+                    w.clapperSwing.v *= -0.4;
+                }
+                w.bellShiver = (w.bellShiver || 0) * Math.exp(-dt * 3.5);
+                // Swing in the direction the pin travels as it passes the bell,
+                // with a quick shiver across it.
+                const sw = w.bellSwing.a, sh = w.bellShiver * 0.03 * Math.sin(t * 55);
+                w.bellPivot.rotation.x = sw * Math.sin(BELL_AZIMUTH) + sh * Math.cos(BELL_AZIMUTH);
+                w.bellPivot.rotation.z = sw * Math.cos(BELL_AZIMUTH) - sh * Math.sin(BELL_AZIMUTH);
+                w.clapperPivot.rotation.x = w.clapperSwing.a * 0.3;
+            }
+
+            // Scroll slides out of the bottom of the drum; the handles drop below it.
+            const explodeTarget = stage === 2 ? 1 : 0;
+            explodeLinear += Math.sign(explodeTarget - explodeLinear) * Math.min(Math.abs(explodeTarget - explodeLinear), dt / 1.6);
+            const explodedProgress = easeInOut(explodeLinear);
+            scroll.position.y = -explodedProgress * 3.9;
+            baseGroup.position.y = -explodedProgress * 4.3;
+
+            updateCcwEffects(realDt);
+
+            if (backdropMaterial) backdropMaterial.uniforms.uTime.value = t;
+            placeBackdrop();
+            updateFlags(t, dt);
+            updateSmoke(t, dt);
+            camera.updateMatrixWorld();
+            updateInfo(t, dt);
+
+            // Background, softly out of focus, more so up close.
+            const bgBlur = renderer.getDrawingBufferSize(new THREE.Vector2()).y / 2 * (0.0026 + 0.0018 * closeness);
+            renderer.setRenderTarget(bgA);
+            renderer.setClearColor(0x7fa8dc, 1);
+            renderer.clear();
+            renderer.render(bgScene, camera);
+            blurTarget(bgA, bgB, bgBlur, 2);
+
+            renderer.setRenderTarget(flA);
+            renderer.setClearColor(0x000000, 0);
+            renderer.clear();
+            renderer.render(flagScene, camera);
+            blurTarget(flA, flB, bgBlur * 0.3, 1);
+
+            renderer.setRenderTarget(null);
+            renderer.setClearColor(0x000000, 1);
+            renderer.clear();
+            compositeMaterial.uniforms.tBg.value = bgA.texture;
+            compositeMaterial.uniforms.tFl.value = flA.texture;
+            quad.material = compositeMaterial;
+            renderer.render(quadScene, quadCam);
+            renderer.clearDepth();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            makeTargets();
+            applyLayout();
+        });
+
+        // ---------------------------------------------------------------
+        // Build everything once the Tibetan font is available, then fade in.
+        // ---------------------------------------------------------------
+        (async function init() {
+            const loader = window.pageLoader || { step() {}, finish(done) { done(); } };
+            loader.step(18, 32); // the 3D engine has arrived
+            const photo = loadPhoto().then(img => { loader.step(40, 55); return img; }).catch(err => {
+                console.warn('Could not load the valley photograph.', err);
+                return null;
+            });
+            try {
+                await Promise.all([
+                    document.fonts.load(`700 100px "Noto Serif Tibetan"`, 'ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ'),
+                    document.fonts.load(`400 30px "Noto Serif Tibetan"`, 'ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ'),
+                ]);
+            } catch (err) {
+                // Falls through to the system Tibetan font below.
+            }
+            if (!document.fonts.check(`700 100px "Noto Serif Tibetan"`, 'ཨོཾ')) {
+                console.warn('Noto Serif Tibetan did not load; using a system Tibetan font.');
+            }
+
+            const scrollTex = scrollTextures();
+            scroll.material[0].map = scrollTex.side;
+            scroll.material[1].map = scrollTex.cap;
+            scroll.material[2].map = scrollTex.cap;
+            scroll.material.forEach(m => { m.needsUpdate = true; });
+
+            const img = await photo;
+            if (img) buildValley(img);
+            buildFlags();
+            buildSmoke();
+            renderCount(false);
+            await nextFrame();
+
+            loader.step(34, 55);   // fonts
+            const relief = await buildDrumRelief();
+            loader.step(66, 84);   // the mantra is raised on the drum
+            syllableBoxes = relief.syllableBoxes;
+            const { normalC, colorC, roughC, dispC } = await buildDrumMaps(relief.h);
+            loader.step(86, 96);   // the brass is finished
+            const copyOf = c => { const d = makeCanvas(c.width, c.height); d.getContext('2d').drawImage(c, 0, 0); return d; };
+            drumMaps = { colorC: copyOf(colorC), roughC: copyOf(roughC), textFull: relief.textCanvas };
+
+            const tex = (c, srgb) => {
+                const t = new THREE.CanvasTexture(c);
+                t.wrapS = THREE.RepeatWrapping;
+                t.anisotropy = maxAniso;
+                if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+                return t;
+            };
+            // The centre drum paints on its own copies; the side drums keep the originals.
+            drumMaps.mapTex = tex(drumMaps.colorC, true);
+            drumMaps.ormTex = tex(drumMaps.roughC);
+            drumMaps.plainMapTex = tex(colorC, true);
+            drumMaps.plainOrmTex = tex(roughC);
+            const ormTex = drumMaps.ormTex;
+            drumMaterial = new THREE.MeshStandardMaterial({
+                map: drumMaps.mapTex,
+                normalMap: tex(normalC),
+                roughnessMap: ormTex,
+                metalnessMap: ormTex,
+                aoMap: ormTex,
+                aoMapIntensity: 1.0,
+                displacementMap: tex(dispC),
+                displacementScale: DISP_MAX,
+                metalness: 1.0,
+                roughness: 1.0,
+            });
+
+            const drum = new THREE.Mesh(new THREE.CylinderGeometry(R, R, HD, 1024, 460, true), drumMaterial);
+            drum.castShadow = drum.receiveShadow = true;
+            shellGroup.add(drum);
+            buildSideWheels();
+
+            // Compile shaders before revealing, so the fade is smooth.
+            renderer.compile(scene, camera);
+            renderer.compile(flagScene, camera);
+            renderer.compile(bgScene, camera);
+            await nextFrame();
+            // Count up to ༡༠༠, then let the loader fade as the scene fades in.
+            loader.finish(() => {
+                container.classList.add('ready');
+                document.body.classList.add('ready');
+            });
+        })();
+
+        frame();
+    </script>
+</body>
+</html>
