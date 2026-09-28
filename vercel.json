@@ -1,9 +1,15 @@
 {
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/",
       "has": [{ "type": "host", "value": "ladakh-prayer-wheel.vercel.app" }],
-      "destination": "https://ladakh.iamjahanvi.com/:path*",
+      "destination": "https://ladakh.iamjahanvi.com/",
+      "permanent": true
+    },
+    {
+      "source": "/:path+",
+      "has": [{ "type": "host", "value": "ladakh-prayer-wheel.vercel.app" }],
+      "destination": "https://ladakh.iamjahanvi.com/:path+",
       "permanent": true
     }
   ]
