@@ -104,13 +104,30 @@
             text-shadow: var(--ink-shadow);
             pointer-events: none;
             transition: opacity 0.5s ease;
+            /* One line: TURNS  ༡༢  •  12. Tibetan numerals sit high in their
+               font, so the parts are centred and the numerals nudged down. */
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            white-space: nowrap;
         }
 
+        .turn-count .label {
+            font-size: 0.62rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .turn-count .dot { font-size: 0.6rem; opacity: 0.6; }
+
         .turn-count .tib {
-            display: block;
+            display: inline-block;
             font-family: "Noto Serif Tibetan", serif;
-            font-size: 1.6rem;
-            line-height: 1.3;
+            font-size: 1.3rem;
+            line-height: 1;
+            position: relative;
+            top: 0.44em;
             transition: transform 0.5s ease;
         }
 
@@ -123,11 +140,9 @@
         }
 
         .turn-count .lat {
-            display: block;
-            font-size: 0.62rem;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            opacity: 0.8;
+            font-size: 0.85rem;
+            letter-spacing: 0.04em;
+            line-height: 1;
         }
 
         /* Chapter text */
@@ -195,7 +210,7 @@
             position: absolute;
             top: 1.4rem;
             right: 2.2rem;
-            z-index: 7;
+            z-index: 9;
             display: flex;
             gap: 0.6rem;
         }
@@ -208,7 +223,6 @@
             position: relative;
             width: 42px;
             height: 42px;
-            color: var(--text-color);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -216,28 +230,101 @@
             transition: color 0.3s ease, opacity 0.5s ease;
         }
 
+        /* Each button is a torn square of the paper from the scroll, its icon
+           printed in woodblock ink (the #print filter). Open or muted, the
+           icon is printed in vermilion instead. */
         .icon-btn::before {
             content: '';
             position: absolute;
             inset: 0;
             z-index: -1;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.00 50.00 L98.95 64.58 L98.81 69.82 L98.58 73.70 L98.25 76.87 L97.83 79.59 L97.31 81.97 L96.69 84.10 L95.97 86.01 L95.14 87.74 L94.21 89.30 L93.17 90.72 L92.00 92.00 L90.72 93.17 L89.30 94.21 L87.74 95.14 L86.01 95.97 L84.10 96.69 L81.97 97.31 L79.59 97.83 L76.87 98.25 L73.70 98.58 L69.82 98.81 L64.58 98.95 L50.00 99.00 L35.42 98.95 L30.18 98.81 L26.30 98.58 L23.13 98.25 L20.41 97.83 L18.03 97.31 L15.90 96.69 L13.99 95.97 L12.26 95.14 L10.70 94.21 L9.28 93.17 L8.00 92.00 L6.83 90.72 L5.79 89.30 L4.86 87.74 L4.03 86.01 L3.31 84.10 L2.69 81.97 L2.17 79.59 L1.75 76.87 L1.42 73.70 L1.19 69.82 L1.05 64.58 L1.00 50.00 L1.05 35.42 L1.19 30.18 L1.42 26.30 L1.75 23.13 L2.17 20.41 L2.69 18.03 L3.31 15.90 L4.03 13.99 L4.86 12.26 L5.79 10.70 L6.83 9.28 L8.00 8.00 L9.28 6.83 L10.70 5.79 L12.26 4.86 L13.99 4.03 L15.90 3.31 L18.03 2.69 L20.41 2.17 L23.13 1.75 L26.30 1.42 L30.18 1.19 L35.42 1.05 L50.00 1.00 L64.58 1.05 L69.82 1.19 L73.70 1.42 L76.87 1.75 L79.59 2.17 L81.97 2.69 L84.10 3.31 L86.01 4.03 L87.74 4.86 L89.30 5.79 L90.72 6.83 L92.00 8.00 L93.17 9.28 L94.21 10.70 L95.14 12.26 L95.97 13.99 L96.69 15.90 L97.31 18.03 L97.83 20.41 L98.25 23.13 L98.58 26.30 L98.81 30.18 L98.95 35.42 Z' fill='rgba(20,24,32,0.18)' stroke='rgba(243,238,228,0.85)' stroke-width='2.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
-            filter: drop-shadow(0 1px 4px rgba(10, 16, 30, 0.35));
-            transition: opacity 0.3s ease;
+            pointer-events: none;
+            background: linear-gradient(rgba(238, 228, 207, 0.86), rgba(238, 228, 207, 0.86)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4 0.35' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.25  0 0 0 0 0.2  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23f)'/%3E%3C/svg%3E");
+            clip-path: polygon(2% 4%, 20% 1%, 38% 3%, 57% 0, 78% 3%, 98% 1%, 100% 22%, 97% 44%, 100% 63%, 98% 84%, 99% 99%, 78% 97%, 58% 100%, 36% 97%, 18% 100%, 1% 98%, 3% 77%, 0 56%, 2% 35%, 0 17%);
+            transform: rotate(var(--tilt, 0deg));
+            transition: transform 0.3s ease;
         }
-
-        .icon-btn:hover::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.00 50.00 L98.95 64.58 L98.81 69.82 L98.58 73.70 L98.25 76.87 L97.83 79.59 L97.31 81.97 L96.69 84.10 L95.97 86.01 L95.14 87.74 L94.21 89.30 L93.17 90.72 L92.00 92.00 L90.72 93.17 L89.30 94.21 L87.74 95.14 L86.01 95.97 L84.10 96.69 L81.97 97.31 L79.59 97.83 L76.87 98.25 L73.70 98.58 L69.82 98.81 L64.58 98.95 L50.00 99.00 L35.42 98.95 L30.18 98.81 L26.30 98.58 L23.13 98.25 L20.41 97.83 L18.03 97.31 L15.90 96.69 L13.99 95.97 L12.26 95.14 L10.70 94.21 L9.28 93.17 L8.00 92.00 L6.83 90.72 L5.79 89.30 L4.86 87.74 L4.03 86.01 L3.31 84.10 L2.69 81.97 L2.17 79.59 L1.75 76.87 L1.42 73.70 L1.19 69.82 L1.05 64.58 L1.00 50.00 L1.05 35.42 L1.19 30.18 L1.42 26.30 L1.75 23.13 L2.17 20.41 L2.69 18.03 L3.31 15.90 L4.03 13.99 L4.86 12.26 L5.79 10.70 L6.83 9.28 L8.00 8.00 L9.28 6.83 L10.70 5.79 L12.26 4.86 L13.99 4.03 L15.90 3.31 L18.03 2.69 L20.41 2.17 L23.13 1.75 L26.30 1.42 L30.18 1.19 L35.42 1.05 L50.00 1.00 L64.58 1.05 L69.82 1.19 L73.70 1.42 L76.87 1.75 L79.59 2.17 L81.97 2.69 L84.10 3.31 L86.01 4.03 L87.74 4.86 L89.30 5.79 L90.72 6.83 L92.00 8.00 L93.17 9.28 L94.21 10.70 L95.14 12.26 L95.97 13.99 L96.69 15.90 L97.31 18.03 L97.83 20.41 L98.25 23.13 L98.58 26.30 L98.81 30.18 L98.95 35.42 Z' fill='rgba(243,238,228,0.16)' stroke='rgba(243,238,228,0.95)' stroke-width='2.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E"); }
-        .icon-btn[aria-pressed="true"]::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.00 50.00 L98.95 64.58 L98.81 69.82 L98.58 73.70 L98.25 76.87 L97.83 79.59 L97.31 81.97 L96.69 84.10 L95.97 86.01 L95.14 87.74 L94.21 89.30 L93.17 90.72 L92.00 92.00 L90.72 93.17 L89.30 94.21 L87.74 95.14 L86.01 95.97 L84.10 96.69 L81.97 97.31 L79.59 97.83 L76.87 98.25 L73.70 98.58 L69.82 98.81 L64.58 98.95 L50.00 99.00 L35.42 98.95 L30.18 98.81 L26.30 98.58 L23.13 98.25 L20.41 97.83 L18.03 97.31 L15.90 96.69 L13.99 95.97 L12.26 95.14 L10.70 94.21 L9.28 93.17 L8.00 92.00 L6.83 90.72 L5.79 89.30 L4.86 87.74 L4.03 86.01 L3.31 84.10 L2.69 81.97 L2.17 79.59 L1.75 76.87 L1.42 73.70 L1.19 69.82 L1.05 64.58 L1.00 50.00 L1.05 35.42 L1.19 30.18 L1.42 26.30 L1.75 23.13 L2.17 20.41 L2.69 18.03 L3.31 15.90 L4.03 13.99 L4.86 12.26 L5.79 10.70 L6.83 9.28 L8.00 8.00 L9.28 6.83 L10.70 5.79 L12.26 4.86 L13.99 4.03 L15.90 3.31 L18.03 2.69 L20.41 2.17 L23.13 1.75 L26.30 1.42 L30.18 1.19 L35.42 1.05 L50.00 1.00 L64.58 1.05 L69.82 1.19 L73.70 1.42 L76.87 1.75 L79.59 2.17 L81.97 2.69 L84.10 3.31 L86.01 4.03 L87.74 4.86 L89.30 5.79 L90.72 6.83 L92.00 8.00 L93.17 9.28 L94.21 10.70 L95.14 12.26 L95.97 13.99 L96.69 15.90 L97.31 18.03 L97.83 20.41 L98.25 23.13 L98.58 26.30 L98.81 30.18 L98.95 35.42 Z' fill='rgb(243,238,228)' stroke='rgb(243,238,228)' stroke-width='2.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E"); }
+        .corner .icon-btn:nth-child(1) { --tilt: -1deg; }
+        .corner .icon-btn:nth-child(2) { --tilt: 1.5deg; }
+        .corner .icon-btn:nth-child(3) { --tilt: -0.8deg; }
+        .info-stepper .icon-btn:first-child { --tilt: 1deg; }
+        .info-stepper .icon-btn:last-child { --tilt: -1.2deg; }
+        .icon-btn:hover::before { transform: rotate(calc(var(--tilt, 0deg) * -1)) scale(1.05); }
+        /* A soft shadow lifts the paper off the sky and the photos. */
+        .icon-btn { color: #1d1814; filter: drop-shadow(0 2px 6px rgba(20, 38, 80, 0.26)) drop-shadow(0 0 1px rgba(20, 38, 80, 0.16)); }
+        .icon-btn[aria-pressed="true"] { color: #b8321f; }
         .icon-btn > * { position: relative; }
-        .icon-btn svg { width: 19px; height: 19px; display: block; filter: drop-shadow(0 1px 1px rgba(10, 14, 24, 0.45)); }
-        .icon-btn:focus-visible { outline: 1px solid var(--text-color); outline-offset: 3px; border-radius: 12px; }
-        .icon-btn[aria-pressed="true"] { color: #1c1f26; }
-        .icon-btn[aria-pressed="true"] svg { filter: none; }
+        .icon-btn svg { width: 20px; height: 20px; display: block; }
+        .icon-btn:focus-visible { outline: 1.5px solid var(--text-color); outline-offset: 3px; }
+
+        /* Gallery: photos from the trip, in a masonry grid over the scene */
+        .gallery {
+            position: fixed;
+            inset: 0;
+            z-index: 8;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
+            background: rgba(24, 11, 3, 0.7); /* the same warm shade as the details */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.7s ease, visibility 0s linear 0.7s;
+        }
+        .gallery.on { opacity: 1; visibility: visible; transition: opacity 0.7s ease; }
+        /* Edges the same as the gaps between photos; the top clears the buttons. */
+        .gallery-inner { padding: calc(1.4rem + 42px + 14px) 14px 14px; }
+        .masonry { position: relative; } /* tiles are placed by layoutGallery() */
+        .photo {
+            position: absolute;
+            margin: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            transform-origin: 50% 0;
+        }
+        /* The photos can't be dragged out, long-pressed to save, or right-clicked. */
+        .photo img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; -webkit-touch-callout: none; }
+        .photo { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+        /* Like: a printed heart on a small dark pill, bottom left of each photo */
+        .like {
+            all: unset;
+            box-sizing: border-box;
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            height: 32px;
+            min-width: 32px;
+            padding: 0 7px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            border-radius: 999px;
+            color: var(--text-color);
+            background: rgba(20, 16, 12, 0.5);
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+            font-size: 0.8rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .like::after { content: ''; position: absolute; inset: -6px; } /* a 44px touch target */
+        .like .count:empty { display: none; } /* no gap beside the heart until there's a count */
+        .like:has(.count:not(:empty)) { padding-right: 11px; }
+        .like svg { width: 18px; height: 18px; display: block; }
+        .like path { fill: transparent; transition: fill 0.25s ease, stroke 0.25s ease; }
+        .like.on path { fill: #e0533b; stroke: #e0533b; }
+        .like.bump svg { animation: like-bump 0.45s ease; }
+        @keyframes like-bump { 40% { transform: scale(1.3); } }
+        .like:focus-visible { outline: 1.5px solid var(--text-color); outline-offset: 2px; }
+        .like-bloom { position: absolute; left: 50%; top: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; pointer-events: none;
+            filter: drop-shadow(0 4px 14px rgba(10, 8, 6, 0.4)); }
+        .like-bloom svg { width: 100%; height: 100%; display: block; }
+        .like-bloom path { fill: #e0533b; stroke: #e0533b; }
+        body.gallery-on .chapter, body.gallery-on .turn-count { opacity: 0 !important; }
 
         .sound .slash { display: none; }
         .sound.muted .slash { display: block; }
         .sound.muted .waves { display: none; }
-        .info-i { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 1.25rem; line-height: 1; text-shadow: var(--ink-shadow); }
 
         /* Details overlay: the scene falls into warm shadow and pools of
            butter-lamp light pick out each part. */
@@ -308,7 +395,7 @@
 
         .info-stepper.show { display: flex; }
         .info-layer.on .info-stepper { pointer-events: auto; }
-        .info-stepper button { width: 38px; height: 38px; font-family: Georgia, serif; font-size: 1.2rem; }
+        .info-stepper button { width: 38px; height: 38px; font-family: Georgia, serif; font-size: 1.3rem; font-weight: 700; }
 
         /* After a counter-clockwise turn: a short caption under the wheels */
         .ccw-note {
@@ -344,11 +431,18 @@
 
         @media (max-width: 720px) {
             .turn-count { right: auto; left: 1.2rem; bottom: auto; top: calc(1.35rem + env(safe-area-inset-top)); text-align: left; }
-            .turn-count .tib { font-size: 1.3rem; }
+            .turn-count .tib { font-size: 1.15rem; }
+            .turn-count .lat { font-size: 0.78rem; }
             .chapter { left: 1.2rem; right: 1.2rem; bottom: calc(1.6rem + env(safe-area-inset-bottom)); max-width: none; }
             .chapter p { font-size: 0.74rem; }
             .ccw-note { width: calc(100vw - 2.4rem); font-size: 0.85rem; }
-            .corner { top: 1.2rem; right: 1.2rem; }
+            /* Smaller paper squares on phones, but each button keeps a 44px
+               touch target: the paper is drawn inset within it. */
+            .corner { top: calc(1.2rem - 4px); right: calc(1.2rem - 4px); gap: 0; }
+            .corner .icon-btn { width: 44px; height: 44px; }
+            .corner .icon-btn::before { inset: 4px; }
+            .corner .icon-btn svg { width: 18px; height: 18px; }
+            .gallery-inner { padding: 4.4rem 16px 3rem; }
             .info-label { width: calc(100vw - 2.4rem); }
             .info-label small { font-size: 0.82rem; }
         }
@@ -617,20 +711,40 @@
         </div>
     </div>
 
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+        <!-- Woodblock ink for the button icons: wobbly edges, and small gaps where the ink didn't take -->
+        <filter id="print" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="7" result="warp"/>
+            <feDisplacementMap in="SourceGraphic" in2="warp" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+            <feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="1" seed="3" result="grain"/>
+            <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4 0 0 0 3.2" result="holes"/>
+            <feComposite in="rough" in2="holes" operator="in"/>
+        </filter>
+    </svg>
+
     <div class="corner ui">
         <button class="icon-btn sound" id="sound" aria-label="Mute sound">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g filter="url(#print)">
             <path d="M4 9.5h3.2L11.5 6v12l-4.3-3.5H4z"/>
             <g class="waves"><path d="M15 9.2a4 4 0 0 1 0 5.6"/><path d="M17.6 6.8a7.4 7.4 0 0 1 0 10.4"/></g>
             <g class="slash"><path d="M15.5 9.5l5 5M20.5 9.5l-5 5"/></g>
-        </svg>
+        </g></svg>
         </button>
-        <button class="icon-btn info-toggle" id="info-toggle" aria-pressed="false" aria-label="Show details"><span class="info-i" aria-hidden="true">i</span></button>
+        <button class="icon-btn info-toggle" id="info-toggle" aria-pressed="false" aria-label="Show details"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g filter="url(#print)"><circle cx="13" cy="6.2" r="1.8"/><path d="M10.1 10.1h4l-1.6 7.3c-.1.5.3.7.8.5l1.4-.6-.3 1.4c-.9.6-2 .9-3 .9-1.3 0-1.9-.7-1.6-2l1.2-5.6h-1.3z"/></g></svg></button>
+        <button class="icon-btn" id="gallery-toggle" aria-pressed="false" aria-label="Show gallery" aria-controls="gallery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g filter="url(#print)"><rect x="3" y="8" width="14" height="12" rx="2.2"/><path d="M7 4.6h11.2a2.3 2.3 0 0 1 2.3 2.3V16"/><path d="M3.4 17.4l3.7-3.7 3 3 2-2 4.7 4.7"/><circle cx="12.9" cy="11.7" r="1.2"/></g></svg></button>
     </div>
 
+    <section class="gallery" id="gallery" aria-hidden="true" aria-label="Gallery">
+        <div class="gallery-inner">
+            <div class="masonry" id="masonry"></div>
+        </div>
+    </section>
+
     <div class="turn-count ui" aria-live="polite">
+        <span class="label">Turns</span>
         <span class="tib" id="count-tib" lang="bo">༠</span>
-        <span class="lat" id="count-lat">0 turns</span>
+        <span class="dot" aria-hidden="true">•</span>
+        <span class="lat" id="count-lat">0</span>
     </div>
 
     <section class="chapter ui" id="chapter" aria-live="polite"></section>
@@ -2105,6 +2219,7 @@
 
         function reflectMuted() {
             soundButton.classList.toggle('muted', muted);
+            soundButton.setAttribute('aria-pressed', String(muted));
             soundButton.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
             if (master) master.gain.setTargetAtTime(muted ? 0 : 0.9, audioCtx.currentTime, 0.05);
         }
@@ -2242,7 +2357,13 @@
         // ---------------------------------------------------------------
         // Counting clockwise turns; noticing counter-clockwise ones.
         // ---------------------------------------------------------------
-        let turns = storage.get('mani.turns', 0);
+        // The count is worldwide: every visitor's turns add to one total.
+        // Turns are sent in small batches; the last known total is kept so
+        // the number appears straight away on the next visit.
+        const TURNS_API = '/api/turns';
+        let serverTotal = storage.get('mani.world', 0);
+        let unsent = 0, inflight = 0, flushTimer = 0;
+        let turns = serverTotal;
 
         function onRotate(w, before, after) {
             // Clockwise progress is measured from countBase; clockwise from above is decreasing theta.
@@ -2264,7 +2385,7 @@
         function renderCount(animate) {
             const tib = document.getElementById('count-tib');
             tib.textContent = tibDigits(turns);
-            document.getElementById('count-lat').textContent = `${turns} ${turns === 1 ? 'turn' : 'turns'}`;
+            document.getElementById('count-lat').textContent = turns.toLocaleString('en');
             if (animate) {
                 tib.classList.remove('pop');
                 void tib.offsetWidth;
@@ -2272,11 +2393,54 @@
             }
         }
 
-        function addTurn() {
-            turns++;
-            storage.set('mani.turns', turns);
-            renderCount(true);
+        // Never counts down: the shown total only moves forward as news arrives.
+        function syncCount(animate) {
+            const next = serverTotal + inflight + unsent;
+            if (next <= turns && !animate) return;
+            turns = Math.max(turns, next);
+            storage.set('mani.world', serverTotal);
+            renderCount(animate);
         }
+
+        function addTurn() {
+            unsent++;
+            syncCount(true);
+            if (!flushTimer) flushTimer = setTimeout(flushTurns, 3000);
+        }
+
+        async function flushTurns() {
+            flushTimer = 0;
+            if (!unsent || inflight) return;
+            inflight = unsent;
+            unsent = 0;
+            try {
+                const r = await fetch(TURNS_API, { method: 'POST', body: JSON.stringify({ n: inflight }) });
+                if (!r.ok) throw new Error(r.status);
+                serverTotal = Math.max(serverTotal, (await r.json()).total);
+                inflight = 0;
+            } catch {
+                unsent += inflight; // try again with the next batch
+                inflight = 0;
+            }
+            syncCount(false);
+            if (unsent && !flushTimer) flushTimer = setTimeout(flushTurns, 6000);
+        }
+
+        async function fetchTotal() {
+            if (document.hidden) return;
+            try {
+                const r = await fetch(TURNS_API);
+                if (r.ok) { serverTotal = Math.max(serverTotal, (await r.json()).total); syncCount(false); }
+            } catch { /* offline: keep the last known total */ }
+        }
+        fetchTotal();
+        setInterval(fetchTotal, 15000);
+
+        // Leaving the page: send what's left without waiting for a reply.
+        window.addEventListener('pagehide', () => {
+            if (unsent) { navigator.sendBeacon?.(TURNS_API, JSON.stringify({ n: unsent })); unsent = 0; }
+        });
+        document.addEventListener('visibilitychange', () => { if (document.hidden) flushTurns(); else fetchTotal(); });
 
         // A counter-clockwise turn gets a gentle, physical response: the wheel
         // slows, pauses and eases itself back clockwise, with an arrow and a
@@ -2575,8 +2739,14 @@
 
         const isNarrow = () => window.innerWidth < 720;
 
+        // Button icons, printed in woodblock ink (see the #print filter).
+        const INFO_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g filter="url(#print)"><circle cx="13" cy="6.2" r="1.8"/><path d="M10.1 10.1h4l-1.6 7.3c-.1.5.3.7.8.5l1.4-.6-.3 1.4c-.9.6-2 .9-3 .9-1.3 0-1.9-.7-1.6-2l1.2-5.6h-1.3z"/></g></svg>';
+        const CLOSE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><g filter="url(#print)"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></g></svg>';
+        const GALLERY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g filter="url(#print)"><rect x="3" y="8" width="14" height="12" rx="2.2"/><path d="M7 4.6h11.2a2.3 2.3 0 0 1 2.3 2.3V16"/><path d="M3.4 17.4l3.7-3.7 3 3 2-2 4.7 4.7"/><circle cx="12.9" cy="11.7" r="1.2"/></g></svg>';
+
         // From another view, glide back to the artifact first, then open.
         function setInfo(on) {
+            if (on && galleryOn) setGallery(false);
             if (on && stage !== 0) {
                 goTo(0);
                 infoPending = true;
@@ -2594,8 +2764,8 @@
             infoToggle.setAttribute('aria-label', infoOn ? 'Close details' : 'Show details');
             // Open, the button becomes a close mark.
             infoToggle.innerHTML = infoOn
-                ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>'
-                : '<span class="info-i" aria-hidden="true">i</span>';
+                ? CLOSE_ICON
+                : INFO_ICON;
             infoLayer.setAttribute('aria-hidden', String(!infoOn));
         }
 
@@ -2618,11 +2788,305 @@
         document.getElementById('info-prev').addEventListener('click', () => stepInfo(-1));
         document.getElementById('info-next').addEventListener('click', () => stepInfo(1));
         window.addEventListener('keydown', e => {
+            ensureAudio(); // a key press also counts as the visitor's first gesture
+            if (galleryOn) { if (e.key === 'Escape') setGallery(false); return; }
             if (e.key === 'i' || e.key === 'I') setInfo(!infoOn);
             else if (e.key === 'Escape') setInfo(false);
             else if (e.key === 'ArrowRight') stepInfo(1);
             else if (e.key === 'ArrowLeft') stepInfo(-1);
         });
+
+        // ---------------------------------------------------------------
+        // Gallery. Each photo lists its size so the masonry can be laid out
+        // before the images load. Placeholders (no src) until the real
+        // photos arrive; their tones are taken from the valley.
+        // ---------------------------------------------------------------
+        // Photos from the trip: a bright opening that alternates wide and
+        // upright photos, then roughly in the order they were taken. Each is in
+        // assets/gallery at up to three widths (<id>-480/960/1600.webp, never
+        // wider than the original); its id keeps its likes; its tone shows
+        // while it loads.
+        const PHOTOS = [
+            { id: 'ph-ba9ffca0', w: 4096, h: 2304, tone: '#6d7374', alt: "A winding river through golden grass, sunlit mountains behind" },
+            { id: 'ph-aa7e3650', w: 2250, h: 4000, tone: '#688bb4', alt: "Prayer flags tied to a post on the stony shore of a blue lake" },
+            { id: 'ph-fad1e24e', w: 3000, h: 4000, tone: '#5e6b69', alt: "Tall poplar trees reaching up into a bright sky" },
+            { id: 'ph-2952c840', w: 2250, h: 4000, tone: '#6c869e', alt: "A yak with a decorated saddle on the shore of a blue lake" },
+            { id: 'ph-1fe0c7bf', w: 4096, h: 2304, tone: '#5e7c89', alt: "A green meadow and stream in a wide valley ringed by mountains" },
+            { id: 'ph-83f5608a', w: 720, h: 1280, tone: '#7c7b58', alt: "A hand holding up a dandelion clock among green trees" },
+            { id: 'ph-6a09c72b', w: 4096, h: 2304, tone: '#67635b', alt: "Sunset over a town in a valley, seen from a hillside" },
+            { id: 'ph-6fadfb6e', w: 1280, h: 960, tone: '#4e739a', alt: "A clear turquoise lake with mountains across the water" },
+            { id: 'ph-465f00c0', w: 1616, h: 2874, tone: '#1d2435', alt: "The Milky Way over a dark ridge and a lattice tower" },
+            { id: 'ph-1fe19b79', w: 960, h: 1280, tone: '#778ca4', alt: "A person in a dark jacket looking out over a lake at sunlit mountains" },
+            { id: 'ph-ba951803', w: 4000, h: 2250, tone: '#6c7683', alt: "A white monastery on a rocky ridge in a dry mountain valley" },
+            { id: 'ph-6a67ebc4', w: 4000, h: 2250, tone: '#957d93', alt: "Red carved wooden window screens with scrolling patterns" },
+            { id: 'ph-a782ed66', w: 2250, h: 4000, tone: '#6e6b5e', alt: "A hand holding a bowl of noodles beside a mountain stream lined with poplars" },
+            { id: 'ph-63467697', w: 4000, h: 2250, tone: '#627da6', alt: "A calm blue lake beneath bare brown mountains" },
+            { id: 'ph-88cbe55a', w: 4000, h: 2250, tone: '#8e8f88', alt: "A road zigzagging down a barren mountainside, seen from above" },
+            { id: 'ph-50ff4588', w: 2250, h: 4000, tone: '#7f8b9e', alt: "A row of prayer wheels along a whitewashed walkway" },
+            { id: 'ph-b90a978b', w: 1440, h: 2560, tone: '#8a746f', alt: "Orange sea buckthorn berries on silvery branches" },
+            { id: 'ph-ce10690f', w: 1080, h: 1920, tone: '#445772', alt: "Snow-streaked mountains seen from an aeroplane window" },
+        ];
+        const GALLERY_WIDTHS = [480, 960, 1600];
+        const srcsetOf = p => [...new Set(GALLERY_WIDTHS.map(s => Math.min(s, p.w)))]
+            .map((w, i) => `assets/gallery/${p.id}-${GALLERY_WIDTHS[i]}.webp ${w}w`).join(', ');
+
+        const gallery = document.getElementById('gallery');
+        const masonry = document.getElementById('masonry');
+        const galleryToggle = document.getElementById('gallery-toggle');
+        let galleryOn = false;
+
+        const tiles = [];
+        function buildGallery() {
+            for (const p of PHOTOS) {
+                const wide = p.w > p.h * 1.15;
+                const fig = document.createElement('figure');
+                fig.className = 'photo';
+                fig.style.backgroundColor = p.tone;
+                // A column is a quarter, a third or half of the page; wide photos take two.
+                const sizes = wide ? '(min-width: 1100px) 50vw, (min-width: 720px) 67vw, 100vw' : '(min-width: 1100px) 25vw, (min-width: 720px) 33vw, 50vw';
+                fig.innerHTML = `<img srcset="${srcsetOf(p)}" sizes="${sizes}"
+                    src="assets/gallery/${p.id}-960.webp" alt="${p.alt}" loading="lazy" decoding="async" draggable="false">`;
+                fig.dataset.photo = p.id;
+                fig.insertAdjacentHTML('beforeend', `<button class="like" type="button">${HEART_ICON}<span class="count"></span></button>`);
+                renderLike(fig);
+                masonry.appendChild(fig);
+                tiles.push({ p, fig, wide });
+            }
+        }
+
+        // Upright photos go into the shortest column; landscape ones span two,
+        // taking the pair of columns where they sit highest. A small gap left
+        // under a photo is closed by letting that photo grow a little (it's
+        // cropped to fit). If a wide photo would leave a bigger hole, one of
+        // the next few upright photos is brought forward to fill it.
+        function pack(list, cols, cw, gap) {
+            const tops = new Array(cols).fill(0);   // where the next photo in each column starts
+            const ends = new Array(cols).fill(null); // the photo that currently ends each column
+            const rows = new Array(cols).fill(0);
+            const placed = [];
+            const stretchable = (c, hole) => {
+                const t = ends[c];
+                if (!(hole > 0 && t && hole <= t.h * 0.35)) return null;
+                for (let k = t.col; k < t.col + t.span; k++) if (ends[k] !== t) return null;
+                return t;
+            };
+            const close = (c, y) => {
+                const t = stretchable(c, y - tops[c]);
+                if (!t) return;
+                t.h += y - tops[c];
+                for (let k = t.col; k < t.col + t.span; k++) tops[k] = y;
+            };
+            const widePair = () => {
+                let c = 0, best = Infinity;
+                for (let k = 0; k < cols - 1; k++) {
+                    const score = Math.max(tops[k], tops[k + 1]) + Math.abs(tops[k] - tops[k + 1]) * 0.25;
+                    if (score < best) { best = score; c = k; }
+                }
+                return c;
+            };
+            const place = ({ p, fig, wide }) => {
+                const span = wide ? 2 : 1;
+                const c = wide ? widePair() : tops.indexOf(Math.min(...tops));
+                const y = Math.max(...tops.slice(c, c + span));
+                for (let k = c; k < c + span; k++) close(k, y);
+                const w = cw * span + gap * (span - 1);
+                const t = { fig, x: c * (cw + gap), y, w, h: w * p.h / p.w, span, col: c, row: rows[c] };
+                placed.push(t);
+                for (let k = c; k < c + span; k++) { tops[k] = y + t.h + gap; ends[k] = t; rows[k]++; }
+            };
+            const leavesHole = () => {
+                const c = widePair(), y = Math.max(tops[c], tops[c + 1]);
+                return [c, c + 1].some(k => y - tops[k] > cw * 0.25 && !stretchable(k, y - tops[k]));
+            };
+            const queue = [...list];
+            while (queue.length) {
+                if (queue[0].wide && cols > 1 && leavesHole()) {
+                    const j = queue.slice(1, 5).findIndex(q => !q.wide);
+                    if (j >= 0) { place(queue.splice(j + 1, 1)[0]); continue; }
+                }
+                place(queue.shift());
+            }
+            const bottom = Math.max(...tops);
+            for (let k = 0; k < cols; k++) close(k, bottom);
+            return { placed, tops, ragged: Math.max(...tops) - Math.min(...tops) };
+        }
+
+        const permutations = a => a.length < 2 ? [a] : a.flatMap((x, i) => permutations([...a.slice(0, i), ...a.slice(i + 1)]).map(r => [x, ...r]));
+
+        function layoutGallery() {
+            if (!tiles.length) buildGallery();
+            const cols = window.innerWidth >= 1100 ? 4 : window.innerWidth >= 720 ? 3 : 2;
+            const gap = cols === 2 ? 10 : 14;
+            const cw = (masonry.clientWidth - gap * (cols - 1)) / cols;
+            // Try the last few photos in each order and keep the evenest bottom edge.
+            const head = tiles.slice(0, -4), tail = tiles.slice(-4);
+            let best = null;
+            for (const order of permutations(tail)) {
+                const r = pack([...head, ...order], cols, cw, gap);
+                if (!best || r.ragged < best.ragged - 0.5) best = r;
+            }
+            for (const t of best.placed) {
+                Object.assign(t.fig.style, { left: `${t.x}px`, top: `${t.y}px`, width: `${t.w}px`, height: `${t.h}px` });
+                t.fig.dataset.col = t.col;
+                t.fig.dataset.row = t.row;
+            }
+            masonry.style.height = `${Math.max(...best.tops) - gap}px`;
+        }
+
+        // Likes. One per browser: a random visitor id and the photos it liked
+        // are kept on this device; counts come from /api/likes. Tapping the
+        // heart likes or unlikes; a double tap on the photo likes it.
+        const LIKES_API = '/api/likes';
+        const HEART_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><g filter="url(#print)"><path d="M12 20.3s-7.3-4.4-7.3-10a4.1 4.1 0 0 1 7.3-2.6 4.1 4.1 0 0 1 7.3 2.6c0 5.6-7.3 10-7.3 10z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></g></svg>';
+        let visitorId = storage.get('mani.visitor', null);
+        if (!visitorId) {
+            // randomUUID needs a secure (https) page and a recent browser; build one by hand otherwise.
+            visitorId = crypto.randomUUID?.() ?? '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+            storage.set('mani.visitor', visitorId);
+        }
+        const liked = new Set(storage.get('mani.likes', []));
+        const unsentLikes = storage.get('mani.likes.unsent', {}); // photo -> liked, not yet sent
+        let likeCounts = {};
+        const likeSeq = {};
+
+        function sendLike(id, on) {
+            return fetch(LIKES_API, { method: 'POST', body: JSON.stringify({ photo: id, visitor: visitorId, liked: on }) })
+                .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+        }
+
+        // Send anything left over from a time the server couldn't be reached.
+        async function sendUnsentLikes() {
+            for (const [id, on] of Object.entries(unsentLikes)) {
+                try {
+                    const { count } = await sendLike(id, on);
+                    delete unsentLikes[id];
+                    likeCounts[id] = count;
+                } catch { break; } // still unreachable; try again later
+            }
+            storage.set('mani.likes.unsent', unsentLikes);
+        }
+        window.addEventListener('online', () => sendUnsentLikes().then(fetchLikes));
+
+        function renderLike(fig) {
+            const id = fig.dataset.photo, btn = fig.querySelector('.like');
+            const on = liked.has(id), n = likeCounts[id] || 0;
+            btn.classList.toggle('on', on);
+            btn.setAttribute('aria-pressed', String(on));
+            btn.setAttribute('aria-label', on ? 'Unlike photo' : 'Like photo');
+            btn.querySelector('.count').textContent = n ? n.toLocaleString('en') : '';
+        }
+
+        async function fetchLikes() {
+            await sendUnsentLikes();
+            try {
+                const r = await fetch(LIKES_API);
+                if (!r.ok) return;
+                likeCounts = (await r.json()).counts;
+                // Likes still waiting to be sent aren't in the server's counts yet.
+                for (const [id, on] of Object.entries(unsentLikes)) likeCounts[id] = Math.max(0, (likeCounts[id] || 0) + (on ? 1 : -1));
+                masonry.querySelectorAll('.photo').forEach(renderLike);
+            } catch { /* offline: hearts still work on this device */ }
+        }
+
+        async function setLike(fig, on) {
+            const id = fig.dataset.photo, btn = fig.querySelector('.like');
+            if (liked.has(id) === on) return;
+            // Show it straight away; the server's count follows.
+            on ? liked.add(id) : liked.delete(id);
+            storage.set('mani.likes', [...liked]);
+            likeCounts[id] = Math.max(0, (likeCounts[id] || 0) + (on ? 1 : -1));
+            renderLike(fig);
+            if (on) { btn.classList.remove('bump'); void btn.offsetWidth; btn.classList.add('bump'); }
+            const seq = likeSeq[id] = (likeSeq[id] || 0) + 1;
+            try {
+                const { count } = await sendLike(id, on);
+                delete unsentLikes[id];
+                storage.set('mani.likes.unsent', unsentLikes);
+                if (seq === likeSeq[id]) { likeCounts[id] = count; renderLike(fig); }
+            } catch {
+                // Offline or unreachable: the heart stays as the visitor left
+                // it, and the like is sent the next time the gallery opens.
+                unsentLikes[id] = on;
+                storage.set('mani.likes.unsent', unsentLikes);
+            }
+        }
+
+        function bloomHeart(fig) {
+            const b = document.createElement('div');
+            b.className = 'like-bloom';
+            b.innerHTML = HEART_ICON.replace(' filter="url(#print)"', ''); // large, the ink grain looks like noise
+            fig.appendChild(b);
+            const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            b.animate(still ? [{ opacity: 0 }, { opacity: 1 }, { opacity: 0 }] : [
+                { transform: 'scale(0.3)', opacity: 0 },
+                { transform: 'scale(1.15)', opacity: 1, offset: 0.35 },
+                { transform: 'scale(1)', opacity: 1, offset: 0.7 },
+                { transform: 'scale(1) translateY(-14px)', opacity: 0 },
+            ], { duration: 900, easing: 'ease-out' }).finished.then(() => b.remove());
+        }
+
+        masonry.addEventListener('click', e => {
+            const btn = e.target.closest('.like');
+            if (btn) setLike(btn.closest('.photo'), !btn.classList.contains('on'));
+        });
+        // A double tap (or double click) on the photo itself likes it.
+        let lastTap = null;
+        masonry.addEventListener('pointerup', e => {
+            const fig = e.target.closest('.photo');
+            if (!fig || e.target.closest('.like')) { lastTap = null; return; }
+            const now = performance.now();
+            if (lastTap && lastTap.fig === fig && now - lastTap.t < 320 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 30) {
+                lastTap = null;
+                setLike(fig, true);
+                bloomHeart(fig);
+            } else lastTap = { fig, t: now, x: e.clientX, y: e.clientY };
+        });
+
+        // Each photo swings gently down from its top edge, like a prayer flag
+        // settling on its string, while it develops from pale sepia to full
+        // colour like a print in the tray. A wave from left to right.
+        function enterGallery() {
+            const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            for (const fig of masonry.querySelectorAll('.photo')) {
+                fig.getAnimations().forEach(a => a.cancel());
+                const delay = Number(fig.dataset.col) * 120 + Number(fig.dataset.row) * 110;
+                if (still) { fig.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: delay / 3, fill: 'backwards' }); continue; }
+                fig.animate([
+                    { transform: 'perspective(900px) rotateX(-38deg)', opacity: 0 },
+                    { transform: 'perspective(900px) rotateX(7deg)', opacity: 1, offset: 0.5 },
+                    { transform: 'perspective(900px) rotateX(-2deg)', offset: 0.78 },
+                    { transform: 'none', opacity: 1 },
+                ], { duration: 1500, delay, easing: 'cubic-bezier(0.3, 0.6, 0.3, 1)', fill: 'backwards' });
+                fig.animate([
+                    { filter: 'sepia(1) brightness(1.9) contrast(0.45) blur(3px)' },
+                    { filter: 'sepia(0.55) brightness(1.25) contrast(0.8) blur(1px)', offset: 0.45 },
+                    { filter: 'none' },
+                ], { duration: 2000, delay, easing: 'ease-in-out', fill: 'backwards' });
+            }
+        }
+
+        function setGallery(on) {
+            if (on && infoOn) setInfo(false);
+            galleryOn = on;
+            if (on) {
+                layoutGallery();
+                gallery.scrollTop = 0;
+                enterGallery();
+                fetchLikes();
+                if (grabbed) { grabbed.phys.dragging = false; grabbed = null; }
+            }
+            gallery.classList.toggle('on', on);
+            gallery.setAttribute('aria-hidden', String(!on));
+            document.body.classList.toggle('gallery-on', on);
+            galleryToggle.setAttribute('aria-pressed', String(on));
+            galleryToggle.setAttribute('aria-label', on ? 'Close gallery' : 'Show gallery');
+            galleryToggle.innerHTML = on ? CLOSE_ICON : GALLERY_ICON;
+        }
+        galleryToggle.addEventListener('click', () => setGallery(!galleryOn));
+        window.addEventListener('resize', () => { if (galleryOn) layoutGallery(); });
+        // No right-click "Save image" on the photos.
+        masonry.addEventListener('contextmenu', e => { if (e.target.closest('.photo')) e.preventDefault(); });
 
         const toScreen = (v, out = new THREE.Vector3()) => {
             out.copy(v).project(camera);
@@ -2900,6 +3364,7 @@
         // carry on into the next stage.
         let wheelAcc = 0, wheelUsed = false, wheelQuiet = 0;
         window.addEventListener('wheel', e => {
+            if (galleryOn) return; // the gallery scrolls on its own
             e.preventDefault();
             const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
             clearTimeout(wheelQuiet);
@@ -2914,7 +3379,7 @@
         }, { passive: false });
 
         window.addEventListener('keydown', e => {
-            if (infoOn) return;
+            if (infoOn || galleryOn) return;
             if (e.key === 'ArrowDown' || e.key === 'PageDown') goTo(stage + 1);
             else if (e.key === 'ArrowUp' || e.key === 'PageUp') goTo(stage - 1);
         });
