@@ -174,7 +174,31 @@
 
         .chapter p .tib { font-family: "Noto Serif Tibetan", serif; }
 
+        /* A sweep of bright gold across the words every few seconds, so the
+           invitation to tap the drum is noticed; it stops once a syllable
+           has been tapped. */
+        .tap-cue {
+            background: linear-gradient(100deg, var(--text-color) 38%, #fff2c2 45%, #ffc53d 50%, #fff2c2 55%, var(--text-color) 62%);
+            background-size: 250% 100%;
+            background-position: 0 0;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            /* The usual text shadow would be painted over the gold here, so
+               the same shadow is drawn beneath it instead. */
+            text-shadow: none;
+            filter: drop-shadow(0 1px 2px rgba(10, 16, 30, 0.6)) drop-shadow(0 0 9px rgba(10, 16, 30, 0.25));
+            animation: tap-shimmer 3s ease-in-out 0.7s infinite backwards;
+        }
+        /* The sweep takes 1.4 s; the rest of each 3 s cycle is a pause. */
+        @keyframes tap-shimmer { 0% { background-position: 100% 0; } 47%, 100% { background-position: 0 0; } }
+        body.syllable-tapped .tap-cue { animation: none; }
+        @media (prefers-reduced-motion: reduce) { .tap-cue { animation: none; } }
+
         .chapter h2 .tib {
+            /* The Tibetan font's tall line spacing mustn't make this title
+               taller than the others. */
+            line-height: 0;
             font-family: "Noto Serif Tibetan", serif;
             font-weight: 400;
             margin-right: 0.4rem;
@@ -197,6 +221,12 @@
             margin-right: 0.35rem;
             box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
         }
+
+        /* The syllable and its name on one line: ཨོཾ • Oṃ */
+        .chapter .syllable-head { display: flex; align-items: baseline; gap: 0.6rem; }
+        /* Tibetan letters sit high in their font; lowered onto the Latin baseline. */
+        .chapter .syllable-head .syllable-big { margin-top: 0; line-height: 1.3; position: relative; top: 0.15em; }
+        .chapter .syllable-head .dot { font-size: 0.7rem; opacity: 0.6; }
 
         .chapter .syllable-big {
             font-family: "Noto Serif Tibetan", serif;
@@ -455,8 +485,8 @@
         .ccw-arc path { fill: none; stroke: var(--text-color); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 3px rgba(10, 14, 24, 0.6)); }
 
         @media (max-width: 720px) {
-            .turn-count { right: auto; left: 1.2rem; bottom: auto; top: calc(1.35rem + env(safe-area-inset-top)); text-align: left; }
-            .turn-count .tib { font-size: 1.15rem; }
+            /* No turn count on phones; their turns still add to the worldwide total. */
+            .turn-count { display: none; }
             .turn-count .lat { font-size: 0.78rem; }
             .chapter { left: 1.2rem; right: 1.2rem; bottom: calc(1.6rem + env(safe-area-inset-bottom)); max-width: none; }
             .chapter p { font-size: 0.74rem; }
@@ -731,7 +761,7 @@
             <g id="lamp-glows" style="mix-blend-mode: screen"></g>
             <g id="lamp-spokes"></g>
         </svg>
-        <div class="info-label" data-part="mantra">The mantra<small>Chenrezig's mantra, <span class="tib" lang="bo">ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ</span>, raised twice around the drum.</small></div>
+        <div class="info-label" data-part="mantra">The mantra<small>The mantra of Chenrezig, the bodhisattva of compassion, <span class="tib" lang="bo">ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ</span>, raised twice around the drum.</small></div>
         <div class="info-label" data-part="handles">The handles<small>Pushed by hand as people walk past, keeping the wheel turning clockwise.</small></div>
         <div class="info-label" data-part="flags">Prayer flags<small>Blue, white, red, green, yellow: sky, wind, fire, water, earth. The wind is said to carry their prayers.</small></div>
         <div class="info-stepper" id="info-stepper">
@@ -810,12 +840,12 @@
         // The six syllables as taught in Tibetan practice: the colour of light
         // each sends, the realm it reaches, the affliction it eases.
         const SYLLABLES = [
-            { tib: 'ཨོཾ', rom: 'Oṃ', colour: 'White', hex: '#f4f1e8', glow: '#fff6e0', realm: 'the realm of the gods', affliction: 'pride', flag: 'white' },
-            { tib: 'མ', rom: 'Ma', colour: 'Green', hex: '#3c9a5f', glow: '#4fd083', realm: 'the realm of the jealous gods', affliction: 'jealousy', flag: 'green' },
-            { tib: 'ཎི', rom: 'Ṇi', colour: 'Yellow', hex: '#f7d117', glow: '#ffd24a', realm: 'the human realm', affliction: 'desire', flag: 'yellow' },
-            { tib: 'པད', rom: 'Pad', colour: 'Blue', hex: '#3a6fc4', glow: '#5c95ff', realm: 'the animal realm', affliction: 'ignorance', flag: 'blue' },
-            { tib: 'མེ', rom: 'Me', colour: 'Red', hex: '#cf3b30', glow: '#ff5a44', realm: 'the realm of hungry ghosts', affliction: 'greed', flag: 'red' },
-            { tib: 'ཧཱུྃ', rom: 'Hūṃ', colour: 'Black', hex: '#1d1d22', glow: '#8a8e99', realm: 'the hell realms', affliction: 'hatred', flag: null },
+            { tib: 'ཨོཾ', rom: 'Oṃ', perfection: 'generosity', colour: 'White', hex: '#f4f1e8', glow: '#fff6e0', realm: 'the realm of the gods', affliction: 'pride', flag: 'white' },
+            { tib: 'མ', rom: 'Ma', perfection: 'ethics', colour: 'Green', hex: '#3c9a5f', glow: '#4fd083', realm: 'the realm of the jealous gods', affliction: 'jealousy', flag: 'green' },
+            { tib: 'ཎི', rom: 'Ṇi', perfection: 'patience', colour: 'Yellow', hex: '#f7d117', glow: '#ffd24a', realm: 'the human realm', affliction: 'desire', flag: 'yellow' },
+            { tib: 'པད', rom: 'Pad', perfection: 'diligence', colour: 'Blue', hex: '#3a6fc4', glow: '#5c95ff', realm: 'the animal realm', affliction: 'ignorance', flag: 'blue' },
+            { tib: 'མེ', rom: 'Me', perfection: 'concentration', colour: 'Red', hex: '#cf3b30', glow: '#ff5a44', realm: 'the realm of hungry ghosts', affliction: 'greed', flag: 'red' },
+            { tib: 'ཧཱུྃ', rom: 'Hūṃ', perfection: 'wisdom', colour: 'Black', hex: '#1d1d22', glow: '#8a8e99', realm: 'the hell realms', affliction: 'hatred', flag: null },
         ];
         const FLAG_ELEMENT = { blue: 'the sky', white: 'the wind', red: 'fire', green: 'water', yellow: 'the earth' };
 
@@ -2610,20 +2640,21 @@
             {
                 title: '<span class="tib" lang="bo">མ་ཎི་འཁོར་ལོ།</span> Mani khorlo',
                 body: [
-                    'Ladakh\'s prayer wheels are made of copper or brass, their mantras engraved or, as on these, hammered out from behind (repoussé). Each turn is held to be as meritorious as reciting every mantra on the scroll inside.'
+                    '<em>Mani</em> is the mantra Oṃ Maṇi Padme Hūṃ, of Chenrezig, the bodhisattva of compassion. <em>Khorlo</em> is Tibetan for wheel.',
+                    'The drum holds thousands of written or printed mantras. Turning it clockwise is held to gather merit, as if reciting each of them. Ladakh\'s wheels are copper or brass, the mantra engraved or, as here, hammered out from behind.'
                 ]
             },
             {
                 title: 'Six syllables, six realms',
                 body: [
-                    'In Tibetan practice each syllable sends light of its own colour into one of the six realms of rebirth, easing the affliction that binds it.',
-                    'Tap a syllable on the drum.'
+                    'In a widely taught Tibetan explanation, each syllable sends light of its own colour into one of the six realms of rebirth, easing the affliction that binds it.',
+                    '<span class="tap-cue">Tap a syllable on the drum.</span>'
                 ]
             },
             {
                 title: 'What turns inside',
                 body: [
-                    'A tight roll of paper printed with the mantra thousands of times, in small script pressed from inked woodblocks, wound around a central axle known as the life tree. Filling a wheel with mantras mirrors the way statues are consecrated.',
+                    'Inside is a tightly rolled scroll: Oṃ Maṇi Padme Hūṃ printed thousands of times in small woodblock script, often with other prayers and sacred texts. It is wound around a central axle called the life tree, and each turn sets every prayer on it in motion.',
                     'Wheels are also turned by flowing streams, by the wind, and by the heat of a lamp.'
                 ]
             },
@@ -2651,7 +2682,7 @@
             const s = SYLLABLES[i];
             let flagLine;
             if (s.flag) {
-                flagLine = `The ${s.flag} prayer flags stir. On the flags this colour stands for ${FLAG_ELEMENT[s.flag]}, not the syllable; the two only share it.`;
+                flagLine = `On the flags this colour stands for ${FLAG_ELEMENT[s.flag]}, not the syllable; the two only share it.`;
             } else {
                 flagLine = 'No prayer flag is black. Instead, juniper smoke drifts past: sang, an offering burned at Himalayan shrines.';
             }
@@ -2662,9 +2693,9 @@
             const part = i === 3 ? `Pad is ${t('པ')} and ${t('ད')}; that ${t('ད')} also carries Me\'s ma written beneath it` : `Me is the ma written beneath ${t('ད')} (${t('ྨ')}), with the vowel ${t('ེ')}`;
             const stack = shared
                 ? `<p>Pad and Me are written together as one word, ${t('པདྨེ')}, with no dot between them. ${part}.</p>` : '';
-            setChapterHTML(`<span class="syllable-big" lang="bo">${shared ? 'པདྨེ' : s.tib}</span>
-                <h2>${s.rom}</h2>
+            setChapterHTML(`<h2 class="syllable-head"><span class="syllable-big" lang="bo">${shared ? 'པདྨེ' : s.tib}</span><span class="dot" aria-hidden="true">•</span>${s.rom}</h2>
                 <p><span class="swatch" style="background:${s.hex}"></span>${s.colour} light into ${s.realm}, easing ${s.affliction}.</p>
+                <p>It is also linked with one of the six perfections: ${s.perfection}.</p>
                 ${stack}<p>${flagLine}</p>`);
         }
 
@@ -2737,6 +2768,7 @@
 
         function selectSyllable(i, box) {
             selected = i;
+            document.body.classList.add('syllable-tapped'); // the gold sweep on "Tap a syllable" has done its job
             startPaint(box, SYLLABLES[i].hex);
             for (const f of flags) {
                 const match = f.colour === SYLLABLES[i].flag;
