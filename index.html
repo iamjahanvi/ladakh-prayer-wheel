@@ -843,12 +843,12 @@
         // The six syllables as taught in Tibetan practice: the colour of light
         // each sends, the realm it reaches, the affliction it eases.
         const SYLLABLES = [
-            { tib: 'ཨོཾ', rom: 'Oṃ', perfection: 'generosity', colour: 'White', hex: '#f4f1e8', glow: '#fff6e0', realm: 'the realm of the gods', affliction: 'pride', flag: 'white' },
-            { tib: 'མ', rom: 'Ma', perfection: 'ethics', colour: 'Green', hex: '#3c9a5f', glow: '#4fd083', realm: 'the realm of the jealous gods', affliction: 'jealousy', flag: 'green' },
-            { tib: 'ཎི', rom: 'Ṇi', perfection: 'patience', colour: 'Yellow', hex: '#f7d117', glow: '#ffd24a', realm: 'the human realm', affliction: 'desire', flag: 'yellow' },
-            { tib: 'པད', rom: 'Pad', perfection: 'diligence', colour: 'Blue', hex: '#3a6fc4', glow: '#5c95ff', realm: 'the animal realm', affliction: 'ignorance', flag: 'blue' },
-            { tib: 'མེ', rom: 'Me', perfection: 'concentration', colour: 'Red', hex: '#cf3b30', glow: '#ff5a44', realm: 'the realm of hungry ghosts', affliction: 'greed', flag: 'red' },
-            { tib: 'ཧཱུྃ', rom: 'Hūṃ', perfection: 'wisdom', colour: 'Black', hex: '#1d1d22', glow: '#8a8e99', realm: 'the hell realms', affliction: 'hatred', flag: null },
+            { tib: 'ཨོཾ', rom: 'Oṃ', colour: 'White', hex: '#f4f1e8', glow: '#fff6e0', realm: 'the realm of the gods', affliction: 'pride', flag: 'white' },
+            { tib: 'མ', rom: 'Ma', colour: 'Green', hex: '#3c9a5f', glow: '#4fd083', realm: 'the realm of the jealous gods', affliction: 'jealousy', flag: 'green' },
+            { tib: 'ཎི', rom: 'Ṇi', colour: 'Yellow', hex: '#f7d117', glow: '#ffd24a', realm: 'the human realm', affliction: 'desire', flag: 'yellow' },
+            { tib: 'པད', rom: 'Pad', colour: 'Blue', hex: '#3a6fc4', glow: '#5c95ff', realm: 'the animal realm', affliction: 'ignorance', flag: 'blue' },
+            { tib: 'མེ', rom: 'Me', colour: 'Red', hex: '#cf3b30', glow: '#ff5a44', realm: 'the realm of hungry ghosts', affliction: 'greed', flag: 'red' },
+            { tib: 'ཧཱུྃ', rom: 'Hūṃ', colour: 'Black', hex: '#1d1d22', glow: '#8a8e99', realm: 'the hell realms', affliction: 'hatred', flag: null },
         ];
         const FLAG_ELEMENT = { blue: 'the sky', white: 'the wind', red: 'fire', green: 'water', yellow: 'the earth' };
 
@@ -2713,7 +2713,6 @@
                 ? `<p>Pad and Me are written together as one word, ${t('པདྨེ')}, with no dot between them. ${part}.</p>` : '';
             setChapterHTML(`<h2 class="syllable-head"><span class="syllable-big" lang="bo">${shared ? 'པདྨེ' : s.tib}</span><span class="dot" aria-hidden="true">•</span>${s.rom}</h2>
                 <p><span class="swatch" style="background:${s.hex}"></span>${s.colour} light into ${s.realm}, easing ${s.affliction}.</p>
-                <p>It is also linked with one of the six perfections: ${s.perfection}.</p>
                 ${stack}<p>${flagLine}</p>`);
         }
 
