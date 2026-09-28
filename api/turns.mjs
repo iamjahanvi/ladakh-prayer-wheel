@@ -24,6 +24,13 @@ export async function POST(request) {
     let n = 0;
     try { n = Math.floor(Number(JSON.parse(await request.text()).n)); } catch { /* ignored below */ }
     if (!Number.isFinite(n) || n < 1) return json({ error: 'bad request' }, 400);
+    // Only the live site counts; local and preview versions answer as if the
+    // turns were added, without saving them.
+    if (process.env.VERCEL_ENV !== 'production') {
+        const r = await fetch(`${base()}/turns?id=eq.1&select=total`, { headers: headers() });
+        const [row] = r.ok ? await r.json() : [];
+        return json({ total: Number(row?.total ?? 0) + Math.min(n, 40) });
+    }
     const r = await fetch(`${base()}/rpc/add_turns`, {
         method: 'POST', headers: headers(), body: JSON.stringify({ n: Math.min(n, 40) }),
     });

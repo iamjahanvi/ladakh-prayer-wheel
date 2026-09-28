@@ -20,7 +20,7 @@ export async function GET() {
     const r = await fetch(`${base()}/rpc/like_counts`, { method: 'POST', headers: headers(), body: '{}' });
     if (!r.ok) return json({ error: 'unavailable' }, 502);
     const counts = Object.fromEntries((await r.json()).map(row => [row.photo, Number(row.n)]));
-    return json({ counts }, 200, 'public, s-maxage=5, stale-while-revalidate=30');
+    return json({ counts }, 200, 'public, s-maxage=5, stale-while-revalidate=10');
 }
 
 export async function POST(request) {
@@ -29,6 +29,14 @@ export async function POST(request) {
     const { photo, visitor, liked } = body;
     if (!PHOTO.test(photo ?? '') || !UUID.test(visitor ?? '') || typeof liked !== 'boolean') {
         return json({ error: 'bad request' }, 400);
+    }
+    // Only the live site counts; local and preview versions answer as if the
+    // like were saved, without saving it.
+    if (process.env.VERCEL_ENV !== 'production') {
+        const r = await fetch(`${base()}/rpc/like_counts`, { method: 'POST', headers: headers(), body: '{}' });
+        const rows = r.ok ? await r.json() : [];
+        const n = Number(rows.find(row => row.photo === photo)?.n ?? 0);
+        return json({ photo, count: liked ? n + 1 : n });
     }
     const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
     const h = createHash('sha256').update(`${process.env.SUPABASE_JWT_SECRET}:${ip}`).digest('hex').slice(0, 32);

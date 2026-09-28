@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Ladakh: Oṃ Maṇi Padme Hūṃ</title>
+    <title>Ladakh</title>
     <meta name="description" content="Turn a Ladakhi prayer wheel: three embossed brass mani wheels in the Indus valley near Leh, with the story of Oṃ Maṇi Padme Hūṃ, its six syllables, and the scroll inside.">
     <meta name="theme-color" content="#4b8cdb">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Ladakh: Oṃ Maṇi Padme Hūṃ">
+    <meta property="og:title" content="Ladakh">
     <meta property="og:description" content="Turn a Ladakhi prayer wheel in the Indus valley, and read the mantra on its drum.">
     <meta property="og:url" content="https://ladakh-prayer-wheel.vercel.app/">
     <meta property="og:image" content="https://ladakh-prayer-wheel.vercel.app/assets/preview.jpg">
@@ -104,13 +104,17 @@
             text-shadow: var(--ink-shadow);
             pointer-events: none;
             transition: opacity 0.5s ease;
-            /* One line: TURNS  ༡༢  •  12. Tibetan numerals sit high in their
-               font, so the parts are centred and the numerals nudged down. */
+            /* 12 • ༡༢ with TURNS centred beneath. */
             display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 0.55rem;
             white-space: nowrap;
         }
+
+        /* Tibetan numerals sit high in their font, so the parts are centred
+           and the numerals nudged down. */
+        .turn-count .nums { display: flex; align-items: center; gap: 0.55rem; }
 
         .turn-count .label {
             font-size: 0.62rem;
@@ -280,7 +284,11 @@
             border-radius: 10px;
             overflow: hidden;
             transform-origin: 50% 0;
+            /* A soft, dark-blue shadow lifts each photo off the shade (as on the paper buttons). */
+            box-shadow: 0 14px 32px rgba(8, 14, 34, 0.62), 0 3px 8px rgba(8, 14, 34, 0.45);
         }
+        /* The "print developing" wash for the entrance (see enterGallery). */
+        .photo .develop { position: absolute; inset: 0; background: #eee0c2; opacity: 0; pointer-events: none; }
         /* The photos can't be dragged out, long-pressed to save, or right-clicked. */
         .photo img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; -webkit-touch-callout: none; }
         .photo { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
@@ -300,9 +308,7 @@
             gap: 5px;
             border-radius: 999px;
             color: var(--text-color);
-            background: rgba(20, 16, 12, 0.5);
-            -webkit-backdrop-filter: blur(6px);
-            backdrop-filter: blur(6px);
+            background: rgba(20, 16, 12, 0.62);
             font-size: 0.8rem;
             line-height: 1;
             cursor: pointer;
@@ -338,6 +344,25 @@
         }
 
         .info-layer.on { opacity: 1; }
+        /* Scroll hint: a mouse with its wheel rolling (desktop), bottom centre,
+           level with the bottom of the text; on phones, a thumb gliding up on
+           the right edge. It goes for good after the first change of view. */
+        .scroll-hint { position: absolute; z-index: 5; pointer-events: none; transition: opacity 0.8s ease; }
+        .scroll-hint .mouse { position: absolute; left: 50%; bottom: 0; width: 22px; height: 34px; margin-left: -11px;
+            border: 1.5px solid var(--text-color); border-radius: 12px; box-shadow: 0 0 8px rgba(10, 16, 30, 0.4); }
+        .scroll-hint .mouse::after { content: ''; position: absolute; left: 50%; top: 6px; width: 3px; height: 7px; margin-left: -1.5px;
+            border-radius: 2px; background: var(--text-color); animation: hint-wheel 1.8s ease-in-out infinite; }
+        @keyframes hint-wheel { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 80% { opacity: 0; transform: translateY(11px); } 100% { opacity: 0; } }
+        .scroll-hint .swipe { display: none; position: absolute; right: 0; top: 0; width: 1px; height: 30px;
+            background: linear-gradient(rgba(243, 238, 228, 0), rgba(243, 238, 228, 0.8)); }
+        .scroll-hint .swipe::after { content: ''; position: absolute; left: 50%; bottom: 0; width: 9px; height: 9px; margin-left: -4.5px;
+            border-radius: 50%; background: rgba(243, 238, 228, 0.9); box-shadow: 0 0 6px rgba(10, 16, 30, 0.4); animation: hint-thumb 1.8s ease-in-out infinite; }
+        @keyframes hint-thumb { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } 80% { transform: translateY(-26px); opacity: 0; } 100% { opacity: 0; } }
+        .scroll-hint { left: 50%; bottom: calc(3rem + 4px); }
+        body.ready .scroll-hint.ui { opacity: 0.85; }
+        body.info-on .scroll-hint, body.gallery-on .scroll-hint, body.ccw-on .scroll-hint, .scroll-hint.done { opacity: 0 !important; }
+        @media (prefers-reduced-motion: reduce) { .scroll-hint .mouse::after, .scroll-hint .swipe::after { animation: none; opacity: 1; } }
+
         body.info-on .chapter { opacity: 0 !important; }
         body.ccw-on .chapter { opacity: 0 !important; }
         body.info-on #webgl-container { cursor: default; }
@@ -439,6 +464,9 @@
             /* Smaller paper squares on phones, but each button keeps a 44px
                touch target: the paper is drawn inset within it. */
             .corner { top: calc(1.2rem - 4px); right: calc(1.2rem - 4px); gap: 0; }
+            .scroll-hint { left: auto; bottom: auto; right: 1.4rem; top: calc(50% - 15px); }
+            .scroll-hint .mouse { display: none; }
+            .scroll-hint .swipe { display: block; }
             .corner .icon-btn { width: 44px; height: 44px; }
             .corner .icon-btn::before { inset: 4px; }
             .corner .icon-btn svg { width: 18px; height: 18px; }
@@ -576,7 +604,7 @@
             document.body.classList.add('loading');
             var word = document.getElementById('loader-word');
 
-            // The real clouds from the valley photograph, drifting slowly left to right.
+            // The real clouds from the valley photograph, drifting left to right.
             // [cloud, width (vw), top (%), seconds to cross, head start (0-1), mirrored, far]
             var CLOUDS = [
                 [0, 30, 2, 110, 0.15], [1, 17, 70, 90, 0.55], [2, 20, 78, 100, 0.05], [3, 15, 14, 80, 0.7],
@@ -585,16 +613,19 @@
                 [1, 19, 0, 105, 0.3], [5, 14, 76, 88, 0.62, 1], [4, 16, 12, 98, 0.85], [6, 12, 82, 82, 0.12, 1],
                 [5, 7, 10, 150, 0.6, 1, 1], [6, 6, 27, 140, 0.1, 0, 1], [4, 7, 66, 160, 0.5, 1, 1], [3, 6, 92, 145, 0.75, 0, 1]
             ];
+            // Sizes are in screen widths, so narrow phones get them twice as wide.
+            var size = window.innerWidth < 720 ? 2 : 1.25;
             CLOUDS.forEach(function (c) {
                 var img = document.createElement('img');
-                var t = c[3] * 2.2;
+                var w = c[1] * size;
+                var t = c[3] * 0.75;
                 img.src = 'assets/clouds/cloud' + c[0] + '.png';
                 img.className = 'cloud';
                 img.alt = '';
-                img.style.setProperty('--w', c[1] + 'vw');
+                img.style.setProperty('--w', w + 'vw');
                 img.style.setProperty('--y', c[2] + '%');
                 img.style.setProperty('--t', t + 's');
-                img.style.setProperty('--x0', (-c[1] - 5) + 'vw');
+                img.style.setProperty('--x0', (-w - 5) + 'vw');
                 img.style.setProperty('--o', c[6] ? '0.55' : (0.75 + 0.25 * (c[1] / 30)).toFixed(2));
                 if (c[5]) img.style.setProperty('--sx', '-1');
                 if (c[6]) img.style.filter = 'blur(0.5px)';
@@ -690,10 +721,9 @@
     <div class="info-layer" id="info-layer" aria-hidden="true">
         <svg class="info-lines" id="info-lines">
             <defs>
-                <filter id="lamp-soft" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur id="lamp-blur" stdDeviation="26"/></filter>
                 <mask id="lamp-holes" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
                     <rect width="100%" height="100%" fill="#fff"/>
-                    <g filter="url(#lamp-soft)" fill="#000" id="lamp-hole-group"></g>
+                    <g id="lamp-hole-group"></g>
                 </mask>
                 <radialGradient id="lamp-glow"><stop offset="0" stop-color="#ffb347" stop-opacity="0.5"/><stop offset="0.6" stop-color="#ff9a33" stop-opacity="0.16"/><stop offset="1" stop-color="#ff8a1f" stop-opacity="0"/></radialGradient>
             </defs>
@@ -741,13 +771,17 @@
     </section>
 
     <div class="turn-count ui" aria-live="polite">
+        <span class="nums">
+            <span class="lat" id="count-lat">0</span>
+            <span class="dot" aria-hidden="true">•</span>
+            <span class="tib" id="count-tib" lang="bo">༠</span>
+        </span>
         <span class="label">Turns</span>
-        <span class="tib" id="count-tib" lang="bo">༠</span>
-        <span class="dot" aria-hidden="true">•</span>
-        <span class="lat" id="count-lat">0</span>
     </div>
 
     <section class="chapter ui" id="chapter" aria-live="polite"></section>
+
+    <div class="scroll-hint ui" id="scroll-hint" aria-hidden="true"><span class="mouse"></span><span class="swipe"></span></div>
 
     <svg class="ccw-arc" id="ccw-arc" aria-hidden="true">
         <path id="ccw-arc-line"/><path id="ccw-arc-head"/>
@@ -1670,10 +1704,17 @@
         const container = document.getElementById('webgl-container');
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        // The wheel is always drawn as sharp as the screen can show, up to 2x.
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // The out-of-focus layers (valley, flags) are drawn at a fraction of
+        // that; if the device can't keep up, the fraction steps down, where
+        // the blur hides it (see adaptResolution).
+        const LAYER_SCALES = [0.5, 0.42, 0.35];
+        let layerStep = 0;
         renderer.autoClear = false;
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.autoUpdate = false; // redrawn only when something casting a shadow moves
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.0;
         container.appendChild(renderer.domElement);
@@ -1689,7 +1730,8 @@
         function makeTargets() {
             for (const t of [bgA, bgB, flA, flB]) t?.dispose();
             const size = renderer.getDrawingBufferSize(new THREE.Vector2());
-            const w = Math.max(2, Math.floor(size.x / 2)), h = Math.max(2, Math.floor(size.y / 2));
+            const k = LAYER_SCALES[layerStep];
+            const w = Math.max(2, Math.floor(size.x * k)), h = Math.max(2, Math.floor(size.y * k));
             bgA = new THREE.WebGLRenderTarget(w, h, rtOptions);
             bgB = new THREE.WebGLRenderTarget(w, h, rtOptions);
             flA = new THREE.WebGLRenderTarget(w, h, rtOptions);
@@ -1757,7 +1799,7 @@
         const sun = new THREE.DirectionalLight(0xffe4bf, 3.3);
         sun.position.copy(SUN_DIR).multiplyScalar(14);
         sun.castShadow = true;
-        sun.shadow.mapSize.set(4096, 4096);
+        sun.shadow.mapSize.set(2048, 2048);
         Object.assign(sun.shadow.camera, { left: -10, right: 10, top: 7, bottom: -9, near: 1, far: 40 });
         sun.shadow.bias = -0.0003;
         sun.shadow.normalBias = 0.03;
@@ -1829,8 +1871,7 @@
         // The valley: a photograph of the Indus near Leh in late-afternoon
         // light. It hangs at a fixed distance in front of the camera so it
         // always fills the view, and shifts only as the camera turns, the
-        // way distant scenery does. On top: glints on the river and cloud
-        // shadows drifting over the land.
+        // way distant scenery does. On top: cloud shadows drifting over the land.
         // ---------------------------------------------------------------
         const PHOTO_URL = 'assets/indus-valley.jpg';
         const PHOTO_ASPECT = 16 / 9;
@@ -1885,13 +1926,10 @@
                     void main() {
                         vec3 c = texture2D(tPhoto, vUv).rgb;
                         vec2 m = texture2D(tMask, vUv).rg;
+                        // Soft cloud shadows drifting slowly over the land.
                         float sh = noise(vUv * vec2(3.0, 5.0) + vec2(uTime * 0.012, uTime * 0.003)) * 0.65
                                  + noise(vUv * vec2(7.0, 11.0) + vec2(uTime * 0.02, 0.0)) * 0.35;
                         c *= 1.0 - 0.2 * m.g * smoothstep(0.55, 0.8, sh);
-                        vec2 cell = floor(vUv * vec2(1600.0, 900.0));
-                        float n = hash(cell + floor(uTime * 2.0 + hash(cell) * 6.0));
-                        float sparkle = step(0.985, n) * m.r * (0.6 + 0.4 * sin(uTime * 9.0 + n * 40.0));
-                        c += vec3(1.0, 0.95, 0.85) * sparkle * 1.6;
                         gl_FragColor = vec4(c, 1.0);
                     }`,
                 depthWrite: false,
@@ -1939,6 +1977,44 @@
             return out;
         };
 
+        // The cloth moves on the graphics card: each vertex of the flat flag is
+        // displaced by its folds and the wind, and its normal is found from
+        // the displaced shape around it, so the light follows the ripples.
+        const CLOTH_SHADER = `
+            uniform float uT, uPhase, uW, uM, uFlutter, uBoost, uF1, uF2, uSeed;
+            vec3 clothAt(vec2 b) {
+                float u = b.x / ${FLAG_W.toFixed(3)} + 0.5, v = -b.y / ${FLAG_H.toFixed(3)};
+                float fold = uF1 * max(0.0, 1.0 - abs(u - 1.0 / 3.0) * 6.0) + uF2 * max(0.0, 1.0 - abs(u - 2.0 / 3.0) * 6.0)
+                    + 0.03 * sin(u * 7.0 + uSeed) * sin(v * 5.0 + uSeed * 0.7)
+                    + 0.02 * v * v * sin(u * 13.0 + uSeed * 1.3);
+                float ph = uPhase + b.x * 3.0 - uT * 1.6;
+                return vec3(
+                    b.x + v * 0.02 * sin(uT * 0.8 + uPhase) * uM,
+                    b.y + v * v * uW * 0.05,
+                    fold + pow(max(v, 0.0), 1.3) * (0.03 * uM + 0.07 * uW) * sin(ph + v * 2.6)
+                         + v * v * (0.018 * uM + 0.06 * uBoost) * sin(uFlutter + b.x * 9.0 + uPhase));
+            }`;
+        function clothMaterial(shared, f1, f2, seed) {
+            const m = shared.clone();
+            const cloth = { uT: { value: 0 }, uPhase: { value: 0 }, uW: { value: 0 }, uM: { value: 1 }, uFlutter: { value: 0 },
+                uBoost: { value: 0 }, uF1: { value: f1 }, uF2: { value: f2 }, uSeed: { value: seed } };
+            m.userData.cloth = cloth;
+            m.onBeforeCompile = shader => {
+                Object.assign(shader.uniforms, cloth);
+                shader.vertexShader = shader.vertexShader
+                    .replace('#include <common>', '#include <common>\n' + CLOTH_SHADER + '\n')
+                    .replace('#include <beginnormal_vertex>', `
+                        vec2 clothB = position.xy;
+                        vec3 clothP = clothAt(clothB);
+                        float e = 0.004;
+                        vec3 objectNormal = normalize(cross(clothAt(clothB + vec2(e, 0.0)) - clothAt(clothB - vec2(e, 0.0)),
+                                                            clothAt(clothB + vec2(0.0, e)) - clothAt(clothB - vec2(0.0, e))));`)
+                    .replace('#include <begin_vertex>', 'vec3 transformed = clothP;');
+            };
+            m.customProgramCacheKey = () => 'flag-cloth';
+            return m;
+        }
+
         function buildFlags() {
             const rng = mulberry32(77);
             const materials = {};
@@ -1977,25 +2053,18 @@
 
                 const geo = new THREE.PlaneGeometry(FLAG_W, FLAG_H, 8, 14);
                 geo.translate(0, -FLAG_H / 2, 0);
-                const base = Float32Array.from(geo.attributes.position.array);
-                // Folds pressed in from storage, and a little crumpling.
-                const fold = new Float32Array(base.length / 3);
+                // Folds pressed in from storage, and a little crumpling (see CLOTH_SHADER).
                 const f1 = (rng() - 0.5) * 0.09, f2 = (rng() - 0.5) * 0.09, seed = rng() * 100;
-                for (let i = 0; i < fold.length; i++) {
-                    const u = base[i * 3] / FLAG_W + 0.5, v = -base[i * 3 + 1] / FLAG_H;
-                    fold[i] = f1 * Math.max(0, 1 - Math.abs(u - 1 / 3) * 6) + f2 * Math.max(0, 1 - Math.abs(u - 2 / 3) * 6)
-                        + 0.03 * Math.sin(u * 7 + seed) * Math.sin(v * 5 + seed * 0.7)
-                        + 0.02 * v * v * Math.sin(u * 13 + seed * 1.3);
-                }
+                const material = clothMaterial(materials[colour][Math.floor(rng() * 3)], f1, f2, seed);
 
-                const mesh = new THREE.Mesh(geo, materials[colour][Math.floor(rng() * 3)]);
+                const mesh = new THREE.Mesh(geo, material);
                 const holder = new THREE.Group();
                 holder.position.copy(pos);
                 holder.rotation.y = Math.atan2(-ahead.z, ahead.x) + (rng() - 0.5) * 0.9;
                 mesh.rotation.z = Math.asin(Math.max(-1, Math.min(1, ahead.y))) * 0.6;
                 holder.add(mesh);
                 flagScene.add(holder);
-                flags.push({ mesh, holder, colour, base, fold, lean: (rng() - 0.5) * 0.3, phase: k * 1.37 + rng() * 2, boost: 0, boostTarget: 0, calm: 0, calmTarget: 0 });
+                flags.push({ mesh, holder, colour, cloth: material.userData.cloth, lean: (rng() - 0.5) * 0.3, phase: k * 1.37 + rng() * 2, boost: 0, boostTarget: 0, calm: 0, calmTarget: 0 });
             }
 
             const pts = [];
@@ -2023,20 +2092,10 @@
                 const W = w * (1 + 4.5 * f.boost) * m;
                 // The whole flag swings about the string.
                 f.mesh.rotation.x = f.lean - (0.04 + 0.2 * W) + 0.05 * Math.sin(t * 1.1 + f.phase) * (0.6 + W) * m;
-                const pos = f.mesh.geometry.attributes.position;
-                const arr = pos.array, base = f.base, fold = f.fold;
-                for (let i = 0, vi = 0; i < arr.length; i += 3, vi++) {
-                    const bx = base[i], by = base[i + 1];
-                    const v = -by / FLAG_H;
-                    const ph = f.phase + bx * 3 - t * 1.6;
-                    arr[i] = bx + v * 0.02 * Math.sin(t * 0.8 + f.phase) * m;
-                    arr[i + 1] = by + v * v * W * 0.05;
-                    arr[i + 2] = fold[vi]
-                        + Math.pow(v, 1.3) * (0.03 * m + 0.07 * W) * Math.sin(ph + v * 2.6)
-                        + v * v * (0.018 * m + 0.06 * f.boost) * Math.sin(f.flutter + bx * 9 + f.phase);
-                }
-                pos.needsUpdate = true;
-                f.mesh.geometry.computeVertexNormals();
+                // The cloth itself is shaped on the graphics card (CLOTH_SHADER).
+                const c = f.cloth;
+                c.uT.value = t; c.uPhase.value = f.phase; c.uW.value = W; c.uM.value = m;
+                c.uFlutter.value = f.flutter; c.uBoost.value = f.boost;
                 f.mesh.material.emissiveIntensity = 0.2 + 0.3 * f.boost;
             }
         }
@@ -2721,7 +2780,6 @@
         const infoLabels = Object.fromEntries([...infoLayer.querySelectorAll('.info-label')].map(el => [el.dataset.part, el]));
         const INFO_PARTS = ['mantra', 'handles', 'flags'];
         const infoStepper = document.getElementById('info-stepper');
-        const lampBlur = document.getElementById('lamp-blur');
         const SVGNS = 'http://www.w3.org/2000/svg';
         const svgEl = (tag, parent, attrs = {}) => {
             const el = document.createElementNS(SVGNS, tag);
@@ -2729,8 +2787,13 @@
             parent.appendChild(el);
             return el;
         };
-        const lamps = INFO_PARTS.map(() => ({
-            hole: svgEl('ellipse', document.getElementById('lamp-hole-group')),
+        // Each pool of light is an ellipse filled with a soft-edged gradient
+        // whose falloff is the same as a gaussian blur of the ellipse (see
+        // softenHole), so no blur filter has to run every frame.
+        const lampDefs = document.querySelector('#info-lines defs');
+        const lamps = INFO_PARTS.map((_, i) => ({
+            hole: svgEl('ellipse', document.getElementById('lamp-hole-group'), { fill: `url(#lamp-hole-${i})` }),
+            gradient: svgEl('radialGradient', lampDefs, { id: `lamp-hole-${i}` }),
             glow: svgEl('ellipse', document.getElementById('lamp-glows'), { fill: 'url(#lamp-glow)' }),
             spoke: svgEl('line', document.getElementById('lamp-spokes'), { class: 'spoke' }),
         }));
@@ -2820,7 +2883,7 @@
             { id: 'ph-ba951803', w: 4000, h: 2250, tone: '#6c7683', alt: "A white monastery on a rocky ridge in a dry mountain valley" },
             { id: 'ph-6a67ebc4', w: 4000, h: 2250, tone: '#957d93', alt: "Red carved wooden window screens with scrolling patterns" },
             { id: 'ph-a782ed66', w: 2250, h: 4000, tone: '#6e6b5e', alt: "A hand holding a bowl of noodles beside a mountain stream lined with poplars" },
-            { id: 'ph-63467697', w: 4000, h: 2250, tone: '#627da6', alt: "A calm blue lake beneath bare brown mountains" },
+            { id: 'ph-8a1ade47', w: 4096, h: 2304, tone: '#5d7dac', alt: "A deep blue lake beneath sunlit brown mountains" },
             { id: 'ph-88cbe55a', w: 4000, h: 2250, tone: '#8e8f88', alt: "A road zigzagging down a barren mountainside, seen from above" },
             { id: 'ph-50ff4588', w: 2250, h: 4000, tone: '#7f8b9e', alt: "A row of prayer wheels along a whitewashed walkway" },
             { id: 'ph-b90a978b', w: 1440, h: 2560, tone: '#8a746f', alt: "Orange sea buckthorn berries on silvery branches" },
@@ -2833,7 +2896,7 @@
         const gallery = document.getElementById('gallery');
         const masonry = document.getElementById('masonry');
         const galleryToggle = document.getElementById('gallery-toggle');
-        let galleryOn = false;
+        let galleryOn = false, galleryCovers = false, coverTimer = 0;
 
         const tiles = [];
         function buildGallery() {
@@ -2847,7 +2910,7 @@
                 fig.innerHTML = `<img srcset="${srcsetOf(p)}" sizes="${sizes}"
                     src="assets/gallery/${p.id}-960.webp" alt="${p.alt}" loading="lazy" decoding="async" draggable="false">`;
                 fig.dataset.photo = p.id;
-                fig.insertAdjacentHTML('beforeend', `<button class="like" type="button">${HEART_ICON}<span class="count"></span></button>`);
+                fig.insertAdjacentHTML('beforeend', `<button class="like" type="button">${HEART_ICON}<span class="count"></span></button><span class="develop"></span>`);
                 renderLike(fig);
                 masonry.appendChild(fig);
                 tiles.push({ p, fig, wide });
@@ -2985,6 +3048,8 @@
                 likeCounts = (await r.json()).counts;
                 // Likes still waiting to be sent aren't in the server's counts yet.
                 for (const [id, on] of Object.entries(unsentLikes)) likeCounts[id] = Math.max(0, (likeCounts[id] || 0) + (on ? 1 : -1));
+                // The counts can be a few seconds old; never show fewer than this visitor's own like.
+                for (const id of liked) likeCounts[id] = Math.max(likeCounts[id] || 0, 1);
                 masonry.querySelectorAll('.photo').forEach(renderLike);
             } catch { /* offline: hearts still work on this device */ }
         }
@@ -3058,10 +3123,12 @@
                     { transform: 'perspective(900px) rotateX(-2deg)', offset: 0.78 },
                     { transform: 'none', opacity: 1 },
                 ], { duration: 1500, delay, easing: 'cubic-bezier(0.3, 0.6, 0.3, 1)', fill: 'backwards' });
-                fig.animate([
-                    { filter: 'sepia(1) brightness(1.9) contrast(0.45) blur(3px)' },
-                    { filter: 'sepia(0.55) brightness(1.25) contrast(0.8) blur(1px)', offset: 0.45 },
-                    { filter: 'none' },
+                // A pale sepia wash over the photo fades away, like a print
+                // coming up in the tray; only opacity changes, which is cheap.
+                fig.querySelector('.develop').animate([
+                    { opacity: 0.85 },
+                    { opacity: 0.4, offset: 0.45 },
+                    { opacity: 0 },
                 ], { duration: 2000, delay, easing: 'ease-in-out', fill: 'backwards' });
             }
         }
@@ -3069,6 +3136,10 @@
         function setGallery(on) {
             if (on && infoOn) setInfo(false);
             galleryOn = on;
+            // Once the gallery has faded in over the scene, the scene stops drawing.
+            clearTimeout(coverTimer);
+            if (on) coverTimer = setTimeout(() => { galleryCovers = true; }, 750);
+            else galleryCovers = false;
             if (on) {
                 layoutGallery();
                 gallery.scrollTop = 0;
@@ -3130,10 +3201,37 @@
             return 1 + 0.025 * Math.sin(t * 7.1 + k * 1.9) + 0.018 * Math.sin(t * 12.7 + k * 3.3) + 0.012 * Math.sin(t * 2.3 + k);
         }
 
+        // The edge of a blurred shape: how dark (0..1) the hole is at distance
+        // d from its centre, for radius r and blur sigma s.
+        const erf = x => {
+            const t = 1 / (1 + 0.3275911 * Math.abs(x));
+            const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+            return x < 0 ? -y : y;
+        };
+        const holeDepth = (d, r, s) => 0.5 * (1 - erf((d - r) / (s * Math.SQRT2)));
+        let lampSigma = 26;
+        function softenHole(lamp, rx, ry) {
+            const r = (rx + ry) / 2, s = lampSigma, outer = r + 3 * s;
+            if (!(r > 0)) return 1; // not placed yet
+            const key = `${r.toFixed(1)}|${s.toFixed(1)}`;
+            if (lamp.key === key) return outer / r;
+            lamp.key = key;
+            const offsets = [0, ...Array.from({ length: 13 }, (_, k) => r - 3 * s + k * s / 2).filter(d => d > 0 && d < outer), outer];
+            lamp.gradient.replaceChildren(...offsets.map(d => {
+                const stop = document.createElementNS(SVGNS, 'stop');
+                stop.setAttribute('offset', (d / outer).toFixed(4));
+                stop.setAttribute('stop-color', '#000');
+                stop.setAttribute('stop-opacity', holeDepth(d, r, s).toFixed(4));
+                return stop;
+            }));
+            return outer / r;
+        }
+
         function placeLamp(lamp, x, y, rx, ry, f, visible) {
             const set = (el, a) => { for (const [k, v] of Object.entries(a)) el.setAttribute(k, v); };
             const o = visible ? '1' : '0';
-            set(lamp.hole, { cx: x, cy: y, rx: rx * f, ry: ry * f, opacity: o });
+            const grow = softenHole(lamp, rx * f, ry * f); // the gradient reaches past the edge
+            set(lamp.hole, { cx: x, cy: y, rx: rx * f * grow, ry: ry * f * grow, opacity: o });
             set(lamp.glow, { cx: x, cy: y, rx: rx * 1.35 * f, ry: ry * 1.35 * f, opacity: visible ? (0.85 + (f - 1) * 4).toFixed(3) : '0' });
         }
 
@@ -3166,7 +3264,7 @@
             const T = infoTargets();
             lastTargets = T;
             infoStepper.classList.toggle('show', narrow);
-            lampBlur.setAttribute('stdDeviation', String(Math.max(14, wheelRadiusPx(wheels[0]) * 0.22)));
+            lampSigma = Math.max(14, wheelRadiusPx(wheels[0]) * 0.22);
             if (!narrow) {
                 INFO_PARTS.forEach((part, k) => {
                     const p = T[part], f = flicker(t, k);
@@ -3229,6 +3327,7 @@
             camMove.t = 0;
             camMove.duration = 1.5 + 0.3 * Math.abs(next - stage);
             stage = next;
+            document.getElementById('scroll-hint').classList.add('done'); // they've found it
             if (stage === 1) faceMantra(wheels[0]);
             else wheels[0].align = null;
             if (stage !== 1) clearSyllable();
@@ -3435,6 +3534,54 @@
         let explodeLinear = 0, closeness = 0;
         showChapter(0);
 
+        // With ?perf in the address, a small readout shows the frame rate and
+        // the current resolution, for checking on real devices.
+        if (new URLSearchParams(location.search).has('perf')) {
+            const el = Object.assign(document.createElement('div'), { id: 'perf' });
+            el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,.6);color:#fff;font:12px/1.4 ui-monospace,monospace;pointer-events:none;white-space:pre';
+            document.body.appendChild(el);
+            let frames = 0, time = 0, worst = 0;
+            window.__perf = {
+                ratio: LAYER_SCALES[0],
+                tick(dt) {
+                    frames++; time += dt; worst = Math.max(worst, dt);
+                    if (time < 0.5) return;
+                    el.textContent = `${Math.round(frames / time)} fps  worst ${Math.round(worst * 1000)} ms\nbackground layers at ${this.ratio}x`;
+                    frames = time = worst = 0;
+                },
+            };
+            setInterval(() => { if (galleryCovers) el.textContent = `scene paused behind the gallery\nbackground layers at ${window.__perf.ratio}x`; }, 500);
+        }
+
+        // The background is only redrawn when the view changes.
+        const bgView = { matrix: new THREE.Matrix4(), blur: -1, w: 0, h: 0, fresh: false, at: 0 };
+        let lastExplode = -1, shadowFrames = 2;
+
+        // Frame times, for adaptResolution: after a second of frames that
+        // can't keep up, the out-of-focus layers step down; after five smooth
+        // seconds, they step back up. The first seconds, while the scene is
+        // still settling in, don't count.
+        const perf = { sum: 0, n: 0, slow: 0, smooth: 0, settleUntil: 6 };
+        function adaptResolution(realDt, now) {
+            if (now < perf.settleUntil || realDt > 0.2) return;
+            perf.sum += realDt; perf.n++;
+            if (perf.sum < 1) return;
+            const fps = perf.n / perf.sum;
+            perf.sum = perf.n = 0;
+            perf.slow = fps < 45 ? perf.slow + 1 : 0;
+            perf.smooth = fps > 57 ? perf.smooth + 1 : 0;
+            let next = layerStep;
+            if (perf.slow >= 1 && layerStep < LAYER_SCALES.length - 1) next++;
+            else if (perf.smooth >= 5 && layerStep > 0) next--;
+            if (next === layerStep) return;
+            layerStep = next;
+            perf.slow = perf.smooth = 0;
+            perf.settleUntil = now + 1.5;
+            makeTargets();
+            bgView.fresh = false;
+            if (window.__perf) window.__perf.ratio = LAYER_SCALES[layerStep];
+        }
+
         function frame() {
             requestAnimationFrame(frame);
             // Physics runs on real elapsed time (it sub-steps internally); visual
@@ -3442,6 +3589,14 @@
             const realDt = Math.min(clock.getDelta(), 0.25);
             const dt = Math.min(realDt, 1 / 20);
             const t = clock.getElapsedTime();
+
+            // Hidden behind the gallery, only the wheels (and their sound) carry on.
+            if (galleryCovers) {
+                perf.sum = perf.n = 0; // time spent behind the gallery doesn't count
+                stepPhysics(realDt);
+                updateSound();
+                return;
+            }
 
             placeCamera(dt);
             closeness += ((stage === 1 ? 1 : 0) - closeness) * (1 - Math.exp(-dt * 2));
@@ -3465,20 +3620,40 @@
             updateCcwEffects(realDt);
             updateSound();
 
-            if (backdropMaterial) backdropMaterial.uniforms.uTime.value = t;
             placeBackdrop();
             updateFlags(t, dt);
             updateSmoke(t, dt);
             camera.updateMatrixWorld();
             updateInfo(t, dt);
 
-            // Background, softly out of focus, more so up close.
-            const bgBlur = renderer.getDrawingBufferSize(new THREE.Vector2()).y / 2 * (0.0026 + 0.0018 * closeness);
-            renderer.setRenderTarget(bgA);
-            renderer.setClearColor(0x5798e2, 1); // the sky above the photo, seen during the descent
-            renderer.clear();
-            renderer.render(bgScene, camera);
-            blurTarget(bgA, bgB, bgBlur, 2);
+            // Background, softly out of focus, more so up close. It's redrawn
+            // every frame while the camera moves; otherwise only a few times a
+            // second, enough for the slow drift of the cloud shadows.
+            const bgBlur = bgA.height * (0.0026 + 0.0018 * closeness);
+            const viewChanged = !bgView.fresh || !bgView.matrix.equals(camera.matrixWorld)
+                || Math.abs(bgView.blur - bgBlur) > 0.01 || bgView.w !== bgA.width || bgView.h !== bgA.height
+                || t - bgView.at > 0.2;
+            if (viewChanged && backdrop) {
+                backdropMaterial.uniforms.uTime.value = t;
+                bgView.at = t;
+                renderer.setRenderTarget(bgA);
+                renderer.setClearColor(0x5798e2, 1); // the sky above the photo, seen during the descent
+                renderer.clear();
+                renderer.render(bgScene, camera);
+                blurTarget(bgA, bgB, bgBlur, 2);
+                bgView.matrix.copy(camera.matrixWorld);
+                Object.assign(bgView, { blur: bgBlur, w: bgA.width, h: bgA.height, fresh: true });
+            } else if (!backdrop) {
+                renderer.setRenderTarget(bgA);
+                renderer.setClearColor(0x5798e2, 1);
+                renderer.clear();
+            }
+
+            // Shadows are redrawn only while something that casts one moves.
+            const moving = activeWheels().some(w => w.phys.dragging || w.align || Math.abs(w.phys.omega) > 1e-3 || Math.abs(w.rock.a) > 1e-4);
+            if (moving || explodeLinear !== lastExplode) shadowFrames = 2;
+            lastExplode = explodeLinear;
+            if (shadowFrames > 0) { renderer.shadowMap.needsUpdate = true; shadowFrames--; }
 
             renderer.setRenderTarget(flA);
             renderer.setClearColor(0x000000, 0);
@@ -3495,6 +3670,9 @@
             renderer.render(quadScene, quadCam);
             renderer.clearDepth();
             renderer.render(scene, camera);
+
+            adaptResolution(realDt, t);
+            if (window.__perf) window.__perf.tick(realDt);
         }
 
         window.addEventListener('resize', () => {
@@ -3502,6 +3680,8 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             makeTargets();
+            bgView.fresh = false;
+            shadowFrames = 2;
             applyLayout();
         });
 
