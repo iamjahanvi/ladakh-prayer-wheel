@@ -172,6 +172,9 @@
             letter-spacing: 0.04em;
         }
 
+        /* Tibetan inside running text keeps to the text's own line spacing;
+           the Tibetan font's tall line spacing would open up those lines. */
+        .chapter p .tib, .info-label .tib, .ccw-note .tib { line-height: 0; }
         .chapter p .tib { font-family: "Noto Serif Tibetan", serif; }
 
         /* A sweep of bright gold across the words every few seconds, so the
@@ -2515,11 +2518,26 @@
             if (unsent && !flushTimer) flushTimer = setTimeout(flushTurns, 6000);
         }
 
+        // The first total from the server on each visit replaces the one
+        // remembered from last time, even if lower (the count may have been
+        // reset); after that it only moves forward.
+        let totalConfirmed = false;
         async function fetchTotal() {
             if (document.hidden) return;
             try {
-                const r = await fetch(TURNS_API);
-                if (r.ok) { serverTotal = Math.max(serverTotal, (await r.json()).total); syncCount(false); }
+                const r = await fetch(TURNS_API, totalConfirmed ? {} : { cache: 'no-store' });
+                if (!r.ok) return;
+                const { total } = await r.json();
+                if (!totalConfirmed) {
+                    totalConfirmed = true;
+                    serverTotal = total;
+                    turns = serverTotal + inflight + unsent;
+                    storage.set('mani.world', serverTotal);
+                    renderCount(false);
+                } else {
+                    serverTotal = Math.max(serverTotal, total);
+                    syncCount(false);
+                }
             } catch { /* offline: keep the last known total */ }
         }
         fetchTotal();
