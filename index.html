@@ -3,10 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Digital Artifact: Prayer Wheel</title>
+    <title>Ladakh: Oṃ Maṇi Padme Hūṃ</title>
+    <meta name="description" content="Turn a Ladakhi prayer wheel: three embossed brass mani wheels in the Indus valley near Leh, with the story of Oṃ Maṇi Padme Hūṃ, its six syllables, and the scroll inside.">
+    <meta name="theme-color" content="#4b8cdb">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Ladakh: Oṃ Maṇi Padme Hūṃ">
+    <meta property="og:description" content="Turn a Ladakhi prayer wheel in the Indus valley, and read the mantra on its drum.">
+    <meta property="og:url" content="https://ladakh-prayer-wheel.vercel.app/">
+    <meta property="og:image" content="https://ladakh-prayer-wheel.vercel.app/assets/preview.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tibetan:wght@400;700&family=Shippori+Mincho:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tibetan:wght@400;700&family=Shippori+Mincho:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --sky-top: #1d56b8;
@@ -140,6 +153,8 @@
             letter-spacing: 0.04em;
         }
 
+        .chapter p .tib { font-family: "Noto Serif Tibetan", serif; }
+
         .chapter h2 .tib {
             font-family: "Noto Serif Tibetan", serif;
             font-weight: 400;
@@ -185,33 +200,44 @@
             gap: 0.6rem;
         }
 
+        /* Squircle icon buttons: the shape is a superellipse drawn as the
+           button's own background, so the outline follows the curve. */
         .icon-btn {
             all: unset;
             box-sizing: border-box;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            border: 1px solid rgba(243, 238, 228, 0.85);
+            position: relative;
+            width: 42px;
+            height: 42px;
             color: var(--text-color);
-            background: rgba(20, 24, 32, 0.18);
-            box-shadow: 0 1px 6px rgba(10, 16, 30, 0.35);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: background 0.3s ease, color 0.3s ease, opacity 0.5s ease;
+            transition: color 0.3s ease, opacity 0.5s ease;
         }
 
-        .icon-btn svg { width: 16px; height: 16px; display: block; filter: drop-shadow(0 1px 1px rgba(10, 14, 24, 0.45)); }
-        .icon-btn:hover { background: rgba(243, 238, 228, 0.16); }
-        .icon-btn:focus-visible { outline: 1px solid var(--text-color); outline-offset: 3px; }
-        .icon-btn[aria-pressed="true"] { background: var(--text-color); color: #1c1f26; }
+        .icon-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.00 50.00 L98.95 64.58 L98.81 69.82 L98.58 73.70 L98.25 76.87 L97.83 79.59 L97.31 81.97 L96.69 84.10 L95.97 86.01 L95.14 87.74 L94.21 89.30 L93.17 90.72 L92.00 92.00 L90.72 93.17 L89.30 94.21 L87.74 95.14 L86.01 95.97 L84.10 96.69 L81.97 97.31 L79.59 97.83 L76.87 98.25 L73.70 98.58 L69.82 98.81 L64.58 98.95 L50.00 99.00 L35.42 98.95 L30.18 98.81 L26.30 98.58 L23.13 98.25 L20.41 97.83 L18.03 97.31 L15.90 96.69 L13.99 95.97 L12.26 95.14 L10.70 94.21 L9.28 93.17 L8.00 92.00 L6.83 90.72 L5.79 89.30 L4.86 87.74 L4.03 86.01 L3.31 84.10 L2.69 81.97 L2.17 79.59 L1.75 76.87 L1.42 73.70 L1.19 69.82 L1.05 64.58 L1.00 50.00 L1.05 35.42 L1.19 30.18 L1.42 26.30 L1.75 23.13 L2.17 20.41 L2.69 18.03 L3.31 15.90 L4.03 13.99 L4.86 12.26 L5.79 10.70 L6.83 9.28 L8.00 8.00 L9.28 6.83 L10.70 5.79 L12.26 4.86 L13.99 4.03 L15.90 3.31 L18.03 2.69 L20.41 2.17 L23.13 1.75 L26.30 1.42 L30.18 1.19 L35.42 1.05 L50.00 1.00 L64.58 1.05 L69.82 1.19 L73.70 1.42 L76.87 1.75 L79.59 2.17 L81.97 2.69 L84.10 3.31 L86.01 4.03 L87.74 4.86 L89.30 5.79 L90.72 6.83 L92.00 8.00 L93.17 9.28 L94.21 10.70 L95.14 12.26 L95.97 13.99 L96.69 15.90 L97.31 18.03 L97.83 20.41 L98.25 23.13 L98.58 26.30 L98.81 30.18 L98.95 35.42 Z' fill='rgba(20,24,32,0.18)' stroke='rgba(243,238,228,0.85)' stroke-width='2.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+            filter: drop-shadow(0 1px 4px rgba(10, 16, 30, 0.35));
+            transition: opacity 0.3s ease;
+        }
+
+        .icon-btn:hover::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.00 50.00 L98.95 64.58 L98.81 69.82 L98.58 73.70 L98.25 76.87 L97.83 79.59 L97.31 81.97 L96.69 84.10 L95.97 86.01 L95.14 87.74 L94.21 89.30 L93.17 90.72 L92.00 92.00 L90.72 93.17 L89.30 94.21 L87.74 95.14 L86.01 95.97 L84.10 96.69 L81.97 97.31 L79.59 97.83 L76.87 98.25 L73.70 98.58 L69.82 98.81 L64.58 98.95 L50.00 99.00 L35.42 98.95 L30.18 98.81 L26.30 98.58 L23.13 98.25 L20.41 97.83 L18.03 97.31 L15.90 96.69 L13.99 95.97 L12.26 95.14 L10.70 94.21 L9.28 93.17 L8.00 92.00 L6.83 90.72 L5.79 89.30 L4.86 87.74 L4.03 86.01 L3.31 84.10 L2.69 81.97 L2.17 79.59 L1.75 76.87 L1.42 73.70 L1.19 69.82 L1.05 64.58 L1.00 50.00 L1.05 35.42 L1.19 30.18 L1.42 26.30 L1.75 23.13 L2.17 20.41 L2.69 18.03 L3.31 15.90 L4.03 13.99 L4.86 12.26 L5.79 10.70 L6.83 9.28 L8.00 8.00 L9.28 6.83 L10.70 5.79 L12.26 4.86 L13.99 4.03 L15.90 3.31 L18.03 2.69 L20.41 2.17 L23.13 1.75 L26.30 1.42 L30.18 1.19 L35.42 1.05 L50.00 1.00 L64.58 1.05 L69.82 1.19 L73.70 1.42 L76.87 1.75 L79.59 2.17 L81.97 2.69 L84.10 3.31 L86.01 4.03 L87.74 4.86 L89.30 5.79 L90.72 6.83 L92.00 8.00 L93.17 9.28 L94.21 10.70 L95.14 12.26 L95.97 13.99 L96.69 15.90 L97.31 18.03 L97.83 20.41 L98.25 23.13 L98.58 26.30 L98.81 30.18 L98.95 35.42 Z' fill='rgba(243,238,228,0.16)' stroke='rgba(243,238,228,0.95)' stroke-width='2.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E"); }
+        .icon-btn[aria-pressed="true"]::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.00 50.00 L98.95 64.58 L98.81 69.82 L98.58 73.70 L98.25 76.87 L97.83 79.59 L97.31 81.97 L96.69 84.10 L95.97 86.01 L95.14 87.74 L94.21 89.30 L93.17 90.72 L92.00 92.00 L90.72 93.17 L89.30 94.21 L87.74 95.14 L86.01 95.97 L84.10 96.69 L81.97 97.31 L79.59 97.83 L76.87 98.25 L73.70 98.58 L69.82 98.81 L64.58 98.95 L50.00 99.00 L35.42 98.95 L30.18 98.81 L26.30 98.58 L23.13 98.25 L20.41 97.83 L18.03 97.31 L15.90 96.69 L13.99 95.97 L12.26 95.14 L10.70 94.21 L9.28 93.17 L8.00 92.00 L6.83 90.72 L5.79 89.30 L4.86 87.74 L4.03 86.01 L3.31 84.10 L2.69 81.97 L2.17 79.59 L1.75 76.87 L1.42 73.70 L1.19 69.82 L1.05 64.58 L1.00 50.00 L1.05 35.42 L1.19 30.18 L1.42 26.30 L1.75 23.13 L2.17 20.41 L2.69 18.03 L3.31 15.90 L4.03 13.99 L4.86 12.26 L5.79 10.70 L6.83 9.28 L8.00 8.00 L9.28 6.83 L10.70 5.79 L12.26 4.86 L13.99 4.03 L15.90 3.31 L18.03 2.69 L20.41 2.17 L23.13 1.75 L26.30 1.42 L30.18 1.19 L35.42 1.05 L50.00 1.00 L64.58 1.05 L69.82 1.19 L73.70 1.42 L76.87 1.75 L79.59 2.17 L81.97 2.69 L84.10 3.31 L86.01 4.03 L87.74 4.86 L89.30 5.79 L90.72 6.83 L92.00 8.00 L93.17 9.28 L94.21 10.70 L95.14 12.26 L95.97 13.99 L96.69 15.90 L97.31 18.03 L97.83 20.41 L98.25 23.13 L98.58 26.30 L98.81 30.18 L98.95 35.42 Z' fill='rgb(243,238,228)' stroke='rgb(243,238,228)' stroke-width='2.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E"); }
+        .icon-btn > * { position: relative; }
+        .icon-btn svg { width: 19px; height: 19px; display: block; filter: drop-shadow(0 1px 1px rgba(10, 14, 24, 0.45)); }
+        .icon-btn:focus-visible { outline: 1px solid var(--text-color); outline-offset: 3px; border-radius: 12px; }
+        .icon-btn[aria-pressed="true"] { color: #1c1f26; }
         .icon-btn[aria-pressed="true"] svg { filter: none; }
 
         .sound .slash { display: none; }
         .sound.muted .slash { display: block; }
         .sound.muted .waves { display: none; }
-        .info-i { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 1.05rem; line-height: 1; text-shadow: var(--ink-shadow); }
+        .info-i { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 1.25rem; line-height: 1; text-shadow: var(--ink-shadow); }
 
         /* Details overlay: the scene falls into warm shadow and pools of
            butter-lamp light pick out each part. */
@@ -531,6 +557,20 @@
             // Wait for `n` rendered frames, so layout and first paints are done.
             function waitFrames(n, fn) { if (n <= 0) return fn(); requestAnimationFrame(function () { waitFrames(n - 1, fn); }); }
 
+            // If the 3D scene can't run or never arrives, say so instead of waiting forever.
+            function explain(msg) {
+                var sub = loader.querySelector('.loader-sub');
+                if (sub) { sub.textContent = msg; sub.style.opacity = '1'; }
+            }
+            var gl = null;
+            try { var probe = document.createElement('canvas'); gl = probe.getContext('webgl2') || probe.getContext('webgl'); } catch (e) {}
+            if (!gl) explain('Julley. This page needs WebGL, which this browser or device has turned off.');
+            setTimeout(function () {
+                if (document.getElementById('loader') && !finished && target < 100) {
+                    explain('Julley. This is taking longer than usual. Please check your connection and refresh.');
+                }
+            }, 30000);
+
             window.pageLoader = {
                 // A real step finished: move to at least `value`, and allow creeping toward `nextCap`.
                 step: function (value, nextCap) { target = Math.max(target, value); cap = Math.max(cap, nextCap || value); },
@@ -568,23 +608,21 @@
             <g id="lamp-spokes"></g>
         </svg>
         <div class="info-label" data-part="mantra">The mantra<small>Chenrezig's mantra, <span class="tib" lang="bo">ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ</span>, raised twice around the drum.</small></div>
-        <div class="info-label" data-part="bell">The bell<small>Struck once each turn by the pin on the lid, so the turns can be counted.</small></div>
         <div class="info-label" data-part="handles">The handles<small>Pushed by hand as people walk past, keeping the wheel turning clockwise.</small></div>
         <div class="info-label" data-part="flags">Prayer flags<small>Blue, white, red, green, yellow: sky, wind, fire, water, earth. The wind is said to carry their prayers.</small></div>
         <div class="info-stepper" id="info-stepper">
             <button class="icon-btn" id="info-prev" aria-label="Previous detail">‹</button>
-            <span id="info-step">1 of 4</span>
+            <span id="info-step">1 of 3</span>
             <button class="icon-btn" id="info-next" aria-label="Next detail">›</button>
         </div>
     </div>
 
     <div class="corner ui">
-        <button class="icon-btn sound" id="sound" aria-label="Mute the bell">
+        <button class="icon-btn sound" id="sound" aria-label="Mute sound">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 3.5c-3 0-5 2.3-5 5.2v3.6L5.3 15.6h13.4L17 12.3V8.7c0-2.9-2-5.2-5-5.2z"/>
-            <path d="M10.2 18.3a1.9 1.9 0 0 0 3.6 0"/>
-            <g class="waves"><path d="M19.8 6.2c.9 1 1.4 2.3 1.4 3.7"/><path d="M4.2 6.2c-.9 1-1.4 2.3-1.4 3.7"/></g>
-            <path class="slash" d="M4 4l16 16"/>
+            <path d="M4 9.5h3.2L11.5 6v12l-4.3-3.5H4z"/>
+            <g class="waves"><path d="M15 9.2a4 4 0 0 1 0 5.6"/><path d="M17.6 6.8a7.4 7.4 0 0 1 0 10.4"/></g>
+            <g class="slash"><path d="M15.5 9.5l5 5M20.5 9.5l-5 5"/></g>
         </svg>
         </button>
         <button class="icon-btn info-toggle" id="info-toggle" aria-pressed="false" aria-label="Show details"><span class="info-i" aria-hidden="true">i</span></button>
@@ -1164,25 +1202,55 @@
             return tex;
         }
 
+        // The scroll: a long strip printed with the mantra thousands of times in
+        // small script, pressed from inked woodblocks. Each block impression
+        // covers a few lines and inks a little differently; the strip, wound
+        // tightly, lies slightly unevenly from line to line.
         function scrollTextures() {
-            const W = 2048, H = 1024;
+            const W = 4096, H = 2048;
             const c = makeCanvas(W, H), ctx = c.getContext('2d');
             const rng = mulberry32(3);
-            ctx.fillStyle = '#e4d4aa'; ctx.fillRect(0, 0, W, H);
-            for (let i = 0; i < 6000; i++) {
+            ctx.fillStyle = '#e6d7ae'; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 14000; i++) {
                 ctx.fillStyle = `rgba(120,90,50,${rng() * 0.06})`;
-                ctx.fillRect(rng() * W, rng() * H, 1 + rng() * 3, 1 + rng() * 8);
+                ctx.fillRect(rng() * W, rng() * H, 1 + rng() * 3, 1 + rng() * 10);
             }
-            ctx.fillStyle = '#2b211b';
-            ctx.font = `400 30px ${TIBETAN}`;
+            const SIZE = 34, LINE = 46;
+            ctx.font = `400 ${SIZE}px ${TIBETAN}`;
             ctx.textBaseline = 'middle';
-            const lineW = ctx.measureText(MANTRA + ' ').width;
-            for (let y = 36, r = 0; y < H - 20; y += 44, r++) {
-                for (let x = -(r % 2) * lineW / 2; x < W; x += lineW) ctx.fillText(MANTRA, x, y);
+            const unit = ctx.measureText(MANTRA + ' ').width;
+            const BLOCK_LINES = 4, BLOCK_W = unit * 3;
+            for (let y = 14, row = 0; y < H - 8; y += LINE, row++) {
+                const blockRow = Math.floor(row / BLOCK_LINES);
+                const drift = Math.sin(row * 0.37) * 2.2 + (rng() - 0.5) * 1.4;   // the strip's slight unevenness
+                const offset = rng() * unit;                                         // no two lines start alike
+                for (let x = -offset, col = 0; x < W; x += unit, col++) {
+                    const block = Math.floor((x + offset) / BLOCK_W);
+                    // Ink: each impression a little heavier or lighter, fading at its edges.
+                    const blockInk = 0.8 + 0.14 * mulberry32(blockRow * 131 + block * 7 + 1)();
+                    const inBlock = ((x + offset) % BLOCK_W) / BLOCK_W;
+                    const edge = 1 - 0.12 * Math.pow(Math.abs(inBlock - 0.5) * 2, 3);
+                    const a = Math.max(0.45, Math.min(0.97, blockInk * edge + (rng() - 0.5) * 0.14));
+                    ctx.fillStyle = `rgba(30,20,14,${a.toFixed(3)})`;
+                    ctx.fillText(MANTRA, x + (rng() - 0.5) * 1.6, y + drift + (rng() - 0.5) * 1.2);
+                }
             }
+            // Where the block missed ink: tiny pale flecks and thin dry streaks.
+            ctx.globalCompositeOperation = 'destination-out';
+            for (let i = 0; i < 16000; i++) {
+                ctx.fillStyle = `rgba(0,0,0,${0.2 + rng() * 0.4})`;
+                ctx.fillRect(rng() * W, rng() * H, 1 + rng() * 2.2, 1 + rng() * 2.2);
+            }
+            ctx.globalCompositeOperation = 'source-over';
+            // The paper shows through the flecks.
+            const paper = makeCanvas(W, H), pctx = paper.getContext('2d');
+            pctx.fillStyle = '#e6d7ae'; pctx.fillRect(0, 0, W, H);
+            pctx.drawImage(c, 0, 0);
+            ctx.drawImage(paper, 0, 0);
             const side = new THREE.CanvasTexture(c);
             side.colorSpace = THREE.SRGBColorSpace;
             side.wrapS = THREE.RepeatWrapping;
+            side.anisotropy = maxAniso;
 
             const cc = makeCanvas(512, 512), cctx = cc.getContext('2d');
             cctx.fillStyle = '#d9c796'; cctx.fillRect(0, 0, 512, 512);
@@ -1596,8 +1664,8 @@
         // ---------------------------------------------------------------
         const VIEWS = [
             { pos: new THREE.Vector3(0, 0.4, 12.5), look: new THREE.Vector3(0, 0.1, 0) },
-            { pos: new THREE.Vector3(0.9, -0.55, 4.3), look: new THREE.Vector3(0, -0.7, 0) },
-            { pos: new THREE.Vector3(1.1, -2.4, 11.5), look: new THREE.Vector3(0, -3.2, 0) },
+            { pos: new THREE.Vector3(0, -0.66, 5.0), look: new THREE.Vector3(0, -0.75, 0) },
+            { pos: new THREE.Vector3(0.9, -3.2, 10.2), look: new THREE.Vector3(0, -3.75, 0) },
         ];
         let stage = 0;
         let infoPending = false; // details asked for from another view
@@ -1928,7 +1996,7 @@
         wobbleGroup.add(wheelGroup);
         scene.add(wobbleGroup);
 
-        const shellGroup = new THREE.Group(); // drum, lid, rims, striker
+        const shellGroup = new THREE.Group(); // drum, lid, rims
         const baseGroup = new THREE.Group();  // plate, cross handles, hub
         wheelGroup.add(shellGroup, baseGroup);
 
@@ -1966,14 +2034,6 @@
             new THREE.MeshBasicMaterial({ visible: false })
         );
         shellGroup.add(pickProxy);
-
-        // Bell striker: a pin standing on the lid near the rim.
-        const BELL_RADIUS = 1.2;
-        // Tall enough that its tip catches the bell's clapper as it passes.
-        const striker = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.18, 10), brassTrim);
-        striker.position.set(0, HD / 2 + 0.04 + 0.09, BELL_RADIUS);
-        striker.castShadow = true;
-        shellGroup.add(striker);
 
         // Plate and red wooden cross the wheel is pushed by.
         const plate = new THREE.Mesh(
@@ -2028,45 +2088,24 @@
         scroll.castShadow = scroll.receiveShadow = true;
         wheelGroup.add(scroll);
 
-        // The bell, hung from the beam on the right; the striker passes it once a turn.
-        const BELL_AZIMUTH = Math.PI / 2;
-        const bellPivot = new THREE.Group();
-        bellPivot.position.set(BELL_RADIUS * Math.sin(BELL_AZIMUTH), HD / 2 + 0.4, BELL_RADIUS * Math.cos(BELL_AZIMUTH));
-        scene.add(bellPivot);
-        const hanger = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, BEAM_Y - 0.21 - bellPivot.position.y, 6), ironMaterial);
-        hanger.position.set(bellPivot.position.x, (BEAM_Y - 0.21 + bellPivot.position.y) / 2, bellPivot.position.z);
-        scene.add(hanger);
-        const bellShape = [[0.0, 0.0], [0.018, 0.0], [0.03, -0.02], [0.042, -0.07], [0.058, -0.13], [0.072, -0.155], [0.068, -0.162]]
-            .map(([x, y]) => new THREE.Vector2(x, y));
-        const bellBody = new THREE.Mesh(new THREE.LatheGeometry(bellShape, 48),
-            new THREE.MeshStandardMaterial({ color: 0xb8964f, metalness: 1, roughness: 0.3, side: THREE.DoubleSide }));
-        bellBody.castShadow = true;
-        bellPivot.add(bellBody);
-        const clapperPivot = new THREE.Group();
-        clapperPivot.position.y = -0.03;
-        bellPivot.add(clapperPivot);
-        const clapperRod = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.15, 6), ironMaterial);
-        clapperRod.position.y = -0.075;
-        const clapperBall = new THREE.Mesh(new THREE.SphereGeometry(0.018, 12, 8), ironMaterial);
-        clapperBall.position.y = -0.155;
-        clapperPivot.add(clapperRod, clapperBall);
-
         function swing(p, w0, damping, dt) {
             p.v += (-w0 * w0 * p.a - damping * p.v) * dt;
             p.a += p.v * dt;
         }
 
         // ---------------------------------------------------------------
-        // Bell sound: a small brass bell, synthesised from its partials,
-        // each a close pair so the tone beats the way real bells do.
+        // The sound of turning: a real wheel, recorded in Leh, looped. Each
+        // wheel plays it at a pace and volume set by its own speed, so a push
+        // swells and a coasting wheel slows and fades away.
         // ---------------------------------------------------------------
-        let audioCtx = null, master = null;
+        const TURN_SOUND_URL = 'assets/wheel-turn.m4a';
+        let audioCtx = null, master = null, turnBuffer = null, turnBufferLoading = false;
         let muted = storage.get('mani.muted', false);
         const soundButton = document.getElementById('sound');
 
         function reflectMuted() {
             soundButton.classList.toggle('muted', muted);
-            soundButton.setAttribute('aria-label', muted ? 'Unmute the bell' : 'Mute the bell');
+            soundButton.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
             if (master) master.gain.setTargetAtTime(muted ? 0 : 0.9, audioCtx.currentTime, 0.05);
         }
         reflectMuted();
@@ -2086,57 +2125,49 @@
                 master = audioCtx.createGain();
                 master.gain.value = muted ? 0 : 0.9;
                 master.connect(audioCtx.destination);
-                // A little open-air reflection.
-                const len = Math.floor(audioCtx.sampleRate * 1.2);
-                const ir = audioCtx.createBuffer(2, len, audioCtx.sampleRate);
-                for (let ch = 0; ch < 2; ch++) {
-                    const data = ir.getChannelData(ch);
-                    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.5) * 0.5;
-                }
-                const verb = audioCtx.createConvolver();
-                verb.buffer = ir;
-                const wet = audioCtx.createGain();
-                wet.gain.value = 0.16;
-                master.connect(verb);
-                verb.connect(wet);
-                wet.connect(audioCtx.destination);
             }
             if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (!turnBuffer && !turnBufferLoading) {
+                turnBufferLoading = true;
+                fetch(TURN_SOUND_URL)
+                    .then(r => r.arrayBuffer())
+                    .then(data => audioCtx.decodeAudioData(data))
+                    .then(buf => { turnBuffer = buf; })
+                    .catch(err => console.warn('Could not load the turning sound.', err))
+                    .finally(() => { turnBufferLoading = false; });
+            }
         }
 
-        function ringBell(strength, pitch = 1) {
-            if (!audioCtx || muted) return;
-            const t = audioCtx.currentTime + 0.005;
-            const f0 = 1240 * pitch * (1 + (Math.random() - 0.5) * 0.012);
-            const partials = [[1, 1, 2.6], [2.02, 0.42, 1.5], [2.76, 0.36, 1.1], [3.95, 0.2, 0.75], [5.4, 0.12, 0.5], [6.88, 0.06, 0.35]];
-            const out = audioCtx.createGain();
-            out.gain.value = 0.16 * (0.35 + 0.65 * strength);
-            out.connect(master);
-            for (const [ratio, amp, decay] of partials) {
-                for (const detune of [0, 0.0014]) {
-                    const osc = audioCtx.createOscillator();
-                    osc.frequency.value = f0 * ratio * (1 + detune);
-                    const g = audioCtx.createGain();
-                    const d = decay * (0.7 + 0.5 * strength);
-                    g.gain.setValueAtTime(0, t);
-                    g.gain.linearRampToValueAtTime(amp * 0.5, t + 0.002);
-                    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-                    osc.connect(g); g.connect(out);
-                    osc.start(t); osc.stop(t + d + 0.05);
-                }
-            }
-            // The tick of the clapper meeting brass.
-            const n = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * 0.03), audioCtx.sampleRate);
-            const nd = n.getChannelData(0);
-            for (let i = 0; i < nd.length; i++) nd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / nd.length, 4);
+        // One voice per wheel: the recording, looping, panned to where the
+        // wheel hangs, and started at a different point for each wheel so the
+        // three never sound in step.
+        function makeVoice(w, k) {
+            const pan = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createGain();
+            if (pan.pan) pan.pan.value = Math.max(-0.6, Math.min(0.6, w.x / 8));
+            pan.connect(master);
+            const gain = audioCtx.createGain();
+            gain.gain.value = 0;
+            gain.connect(pan);
             const src = audioCtx.createBufferSource();
-            src.buffer = n;
-            const bp = audioCtx.createBiquadFilter();
-            bp.type = 'bandpass'; bp.frequency.value = 4200; bp.Q.value = 0.9;
-            const ng = audioCtx.createGain();
-            ng.gain.value = 0.25 * strength;
-            src.connect(bp); bp.connect(ng); ng.connect(out);
-            src.start(t);
+            src.buffer = turnBuffer;
+            src.loop = true;
+            src.playbackRate.value = 0.6;
+            src.connect(gain);
+            src.start(0, (turnBuffer.duration * (0.37 * k + 0.11)) % turnBuffer.duration);
+            return { gain, src };
+        }
+
+        function updateSound() {
+            if (!audioCtx || audioCtx.state !== 'running' || !turnBuffer) return;
+            const now = audioCtx.currentTime;
+            wheels.forEach((w, k) => {
+                if (!w.voice) w.voice = makeVoice(w, k);
+                const v = w.voice;
+                const speed = w.active ? Math.min(1, Math.abs(w.phys.omega) / MAX_OMEGA) : 0;
+                // Faster turning: the rubbing comes round sooner and sounds fuller.
+                v.src.playbackRate.setTargetAtTime(w.pitch * (0.62 + 0.45 * speed), now, 0.15);
+                v.gain.gain.setTargetAtTime(0.35 * Math.pow(speed, 0.8), now, speed > 0 ? 0.08 : 0.25);
+            });
         }
 
         // ---------------------------------------------------------------
@@ -2148,16 +2179,16 @@
         const BEARING = 0.45, AIR = 0.09, GRIP_K = 90, MAX_OMEGA = 4, FLICK_CARRY = 0.75;
         let userTouched = false;
 
-        function makeWheelState(x, spinGroup, wobble, bell, clapper, theta, omega, pitch) {
+        function makeWheelState(x, spinGroup, wobble, theta, omega, pitch) {
             return {
-                x, spin: spinGroup, wobble, bellPivot: bell, clapperPivot: clapper, pitch, active: true,
+                x, spin: spinGroup, wobble, pitch, active: true,
                 phys: { theta, omega, target: theta, grabX: 0, grabTheta: theta, radiusPx: 200, centreX: 0, trail: [], dragging: false },
-                rock: { a: 0, v: 0 }, bellSwing: { a: 0, v: 0 }, clapperSwing: { a: 0, v: 0 },
+                rock: { a: 0, v: 0 },
                 countBase: theta, ccwProgress: 0,
             };
         }
         // The centre wheel; the side wheels are added once the drum is built.
-        const wheels = [makeWheelState(0, wheelGroup, wobbleGroup, bellPivot, clapperPivot, 0, 0, 1)];
+        const wheels = [makeWheelState(0, wheelGroup, wobbleGroup, 0, 0, 1)];
         const activeWheels = () => wheels.filter(w => w.active);
 
         // Where on the drum's curved face a screen x falls, as an angle. A point
@@ -2180,7 +2211,16 @@
             const h = dt / steps;
             for (let s = 0; s < steps; s++) {
                 if (phys.dragging) {
+                    w.align = null;
                     phys.omega += (GRIP_K * (phys.target - phys.theta) - 2 * Math.sqrt(GRIP_K) * phys.omega) * h;
+                } else if (w.align) {
+                    // Turning to face a mantra panel: ease in and settle, like a hand guiding it.
+                    const d = w.align.target - phys.theta;
+                    const want = Math.max(-1.6, Math.min(1.6, d * 2.4));
+                    phys.omega += (want - phys.omega) * Math.min(1, h * 5);
+                    if (Math.abs(d) < 0.0015 && Math.abs(phys.omega) < 0.02) {
+                        phys.theta = w.align.target; phys.omega = 0; w.align = null;
+                    }
                 } else if (phys.omega !== 0) {
                     const dec = (BEARING + AIR * Math.abs(phys.omega)) * h;
                     if (Math.abs(phys.omega) <= dec) {
@@ -2205,20 +2245,6 @@
         let turns = storage.get('mani.turns', 0);
 
         function onRotate(w, before, after) {
-            // The striker passes the bell.
-            const k0 = Math.floor((before - BELL_AZIMUTH) / (2 * Math.PI));
-            const k1 = Math.floor((after - BELL_AZIMUTH) / (2 * Math.PI));
-            if (k0 !== k1) {
-                const strength = clamp01(Math.abs(w.phys.omega) / 7);
-                const dir = Math.sign(after - before);
-                // The pin knocks the clapper, which knocks the bell: both swing
-                // away in the pin's direction, harder the faster it turns.
-                w.clapperSwing.v += dir * (4 + 8 * strength);
-                w.bellSwing.v += dir * (0.6 + 1.4 * strength);
-                w.bellShiver = Math.max(w.bellShiver || 0, 0.4 + 0.6 * strength);
-                if (Math.abs(w.phys.omega) > 0.08) ringBell(Math.max(0.12, strength), w.pitch);
-            }
-
             // Clockwise progress is measured from countBase; clockwise from above is decreasing theta.
             if (!userTouched) { w.countBase = after; return; }
             if (after > w.countBase) w.countBase = after;
@@ -2361,8 +2387,7 @@
             {
                 title: '<span class="tib" lang="bo">མ་ཎི་འཁོར་ལོ།</span> Mani khorlo',
                 body: [
-                    'A prayer wheel of repoussé brass: its letters and beads are hammered out from behind. Each turn is held to be as meritorious as reciting every mantra on the scroll inside.',
-                    'Turn it clockwise, the direction the mantras are written, following the sun.'
+                    'Ladakh\'s prayer wheels are made of copper or brass, their mantras engraved or, as on these, hammered out from behind (repoussé). Each turn is held to be as meritorious as reciting every mantra on the scroll inside.'
                 ]
             },
             {
@@ -2375,7 +2400,7 @@
             {
                 title: 'What turns inside',
                 body: [
-                    'A tight roll of paper printed with the mantra, wound around a central axle known as the life tree. Filling a wheel with mantras mirrors the way statues are consecrated.',
+                    'A tight roll of paper printed with the mantra thousands of times, in small script pressed from inked woodblocks, wound around a central axle known as the life tree. Filling a wheel with mantras mirrors the way statues are consecrated.',
                     'Wheels are also turned by flowing streams, by the wind, and by the heat of a lamp.'
                 ]
             },
@@ -2407,9 +2432,14 @@
             } else {
                 flagLine = 'No prayer flag is black. Instead, juniper smoke drifts past: sang, an offering burned at Himalayan shrines.';
             }
-            const stack = (i === 3 || i === 4)
-                ? `<p>Written as one stack, <span lang="bo" style="font-family:'Noto Serif Tibetan',serif">པདྨེ</span>: Pad and Me share it.</p>` : '';
-            setChapterHTML(`<span class="syllable-big" lang="bo">${s.tib}</span>
+            // Pad and Me are written together as one word, པདྨེ; show it whole
+            // on both cards rather than splitting the stacked ད and ྨ apart.
+            const shared = i === 3 || i === 4;
+            const t = x => `<span class="tib" lang="bo">${x}</span>`;
+            const part = i === 3 ? `Pad is ${t('པ')} and ${t('ད')}; that ${t('ད')} also carries Me\'s ma written beneath it` : `Me is the ma written beneath ${t('ད')} (${t('ྨ')}), with the vowel ${t('ེ')}`;
+            const stack = shared
+                ? `<p>Pad and Me are written together as one word, ${t('པདྨེ')}, with no dot between them. ${part}.</p>` : '';
+            setChapterHTML(`<span class="syllable-big" lang="bo">${shared ? 'པདྨེ' : s.tib}</span>
                 <h2>${s.rom}</h2>
                 <p><span class="swatch" style="background:${s.hex}"></span>${s.colour} light into ${s.realm}, easing ${s.affliction}.</p>
                 ${stack}<p>${flagLine}</p>`);
@@ -2435,7 +2465,7 @@
             const regions = [x0, x0 + TW, x0 - TW].filter(x => x + w > 0 && x < TW).map(x => ({
                 x, col: cctx.getImageData(x, y0, w, h), orm: rctx.getImageData(x, y0, w, h),
             }));
-            const mc = makeCanvas(w, h), mctx = mc.getContext('2d');
+            const mc = makeCanvas(w, h), mctx = mc.getContext('2d', { willReadFrequently: true });
             mctx.translate(-x0, -y0);
             const g = box.glyph;
             mctx.beginPath();
@@ -2525,7 +2555,7 @@
         const infoToggle = document.getElementById('info-toggle');
         const infoLayer = document.getElementById('info-layer');
         const infoLabels = Object.fromEntries([...infoLayer.querySelectorAll('.info-label')].map(el => [el.dataset.part, el]));
-        const INFO_PARTS = ['mantra', 'bell', 'handles', 'flags'];
+        const INFO_PARTS = ['mantra', 'handles', 'flags'];
         const infoStepper = document.getElementById('info-stepper');
         const lampBlur = document.getElementById('lamp-blur');
         const SVGNS = 'http://www.w3.org/2000/svg';
@@ -2623,7 +2653,6 @@
             const flagsAt = flags.length ? visibleFlagPoint() : toScreen(wv(-3, 2.6, -4));
             return {
                 mantra:  { ...toScreen(wv(-0.75, 0.92, 1.2)), rx: Rpx * 0.62, ry: Rpx * 0.46, dir: [-0.2, -1] },
-                bell:    { ...toScreen(bellPivot.position.clone().add(wv(0, -0.08, 0))), rx: Rpx * 0.3, ry: Rpx * 0.3, dir: [0.65, -1] },
                 handles: { x: mid.x, y: mid.y, rx: Rpx * 1.25, ry: Rpx * 0.3, dir: [0.7, 1] },
                 flags:   { ...flagsAt, rx: Rpx * 0.5, ry: Rpx * 0.38, dir: [-0.55, 1] },
                 _: { hub: toScreen(wv(0, hubY, 0.25)) },
@@ -2710,6 +2739,24 @@
         // ---------------------------------------------------------------
 
         // Stages loop: past the scroll comes the artifact again, and back.
+        // Turn a drum clockwise to the nearest lower-band mantra panel, so it
+        // faces the camera squarely.
+        function faceMantra(w) {
+            if (!syllableBoxes.length || w.phys.dragging) return;
+            // The mantra view looks straight along the axis (camera at x = 0), so a
+            // panel at texture position u faces it when theta = -2πu.
+            let best = null;
+            for (let i = 0; i < 3; i++) {
+                const u = (BANDS[1].offset + i * PERIOD) / TW;
+                let target = -u * 2 * Math.PI;
+                // Clockwise is decreasing theta: find the nearest target at or below the current angle.
+                while (target > w.phys.theta) target -= 2 * Math.PI;
+                while (target < w.phys.theta - 2 * Math.PI) target += 2 * Math.PI;
+                if (best === null || target > best) best = target;
+            }
+            w.align = { target: best };
+        }
+
         function goTo(next) {
             next = ((next % VIEWS.length) + VIEWS.length) % VIEWS.length;
             if (next === stage) return;
@@ -2718,6 +2765,8 @@
             camMove.t = 0;
             camMove.duration = 1.5 + 0.3 * Math.abs(next - stage);
             stage = next;
+            if (stage === 1) faceMantra(wheels[0]);
+            else wheels[0].align = null;
             if (stage !== 1) clearSyllable();
             showChapter(stage);
             setInfo(false);
@@ -2746,7 +2795,7 @@
         container.addEventListener('pointerdown', e => {
             pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
             container.setPointerCapture?.(e.pointerId);
-            ensureAudio();
+            if (e.pointerType === 'mouse') ensureAudio(); // touch starts sound when the tap ends
             userTouched = true;
             if (pointers.size === 2) {
                 if (grabbed) grabbed.phys.dragging = false;
@@ -2842,6 +2891,8 @@
             downAt = null;
         }
         window.addEventListener('pointerup', endPointer);
+        // Phones only allow sound once a tap ends, so start it there too.
+        window.addEventListener('pointerup', () => ensureAudio());
         window.addEventListener('pointercancel', endPointer);
 
         // One scroll gesture moves one stage. The gesture stays "used" until
@@ -2885,15 +2936,13 @@
                 const wobble = wobbleGroup.clone(true);
                 wobble.position.x = x;
                 wobble.traverse(o => { if (o.material === drumMaterial) o.material = sideDrum; });
-                const bell = bellPivot.clone(true);
-                bell.position.x += x;
-                const fixtures = [rod, bracket, hanger].map(m => {
+                const fixtures = [rod, bracket].map(m => {
                     const c = m.clone();
                     c.position.x += x;
                     return c;
                 });
-                sideGroup.add(wobble, bell, ...fixtures);
-                wheels.push(makeWheelState(x, wobble.children[0], wobble, bell, bell.children[1], theta, 0, pitch));
+                sideGroup.add(wobble, ...fixtures);
+                wheels.push(makeWheelState(x, wobble.children[0], wobble, theta, 0, pitch));
             }
             scene.add(sideGroup);
             applyLayout();
@@ -2939,20 +2988,6 @@
                 const tilt = 0.0045 * Math.min(1, Math.abs(phys.omega) / 6);
                 w.wobble.rotation.x = tilt * Math.sin(phys.theta + 0.7);
                 w.wobble.rotation.z = tilt * Math.cos(phys.theta + 0.7);
-                swing(w.bellSwing, 8, 1.8, dt);
-                swing(w.clapperSwing, 11, 2.6, dt);
-                // The clapper can't swing past the bell's inner wall.
-                if (Math.abs(w.clapperSwing.a * 0.3) > 0.35) {
-                    w.clapperSwing.a = Math.sign(w.clapperSwing.a) * 0.35 / 0.3;
-                    w.clapperSwing.v *= -0.4;
-                }
-                w.bellShiver = (w.bellShiver || 0) * Math.exp(-dt * 3.5);
-                // Swing in the direction the pin travels as it passes the bell,
-                // with a quick shiver across it.
-                const sw = w.bellSwing.a, sh = w.bellShiver * 0.03 * Math.sin(t * 55);
-                w.bellPivot.rotation.x = sw * Math.sin(BELL_AZIMUTH) + sh * Math.cos(BELL_AZIMUTH);
-                w.bellPivot.rotation.z = sw * Math.cos(BELL_AZIMUTH) - sh * Math.sin(BELL_AZIMUTH);
-                w.clapperPivot.rotation.x = w.clapperSwing.a * 0.3;
             }
 
             // Scroll slides out of the bottom of the drum; the handles drop below it.
@@ -2963,6 +2998,7 @@
             baseGroup.position.y = -explodedProgress * 4.3;
 
             updateCcwEffects(realDt);
+            updateSound();
 
             if (backdropMaterial) backdropMaterial.uniforms.uTime.value = t;
             placeBackdrop();
@@ -3045,7 +3081,7 @@
             syllableBoxes = relief.syllableBoxes;
             const { normalC, colorC, roughC, dispC } = await buildDrumMaps(relief.h);
             loader.step(86, 96);   // the brass is finished
-            const copyOf = c => { const d = makeCanvas(c.width, c.height); d.getContext('2d').drawImage(c, 0, 0); return d; };
+            const copyOf = c => { const d = makeCanvas(c.width, c.height); d.getContext('2d', { willReadFrequently: true }).drawImage(c, 0, 0); return d; };
             drumMaps = { colorC: copyOf(colorC), roughC: copyOf(roughC), textFull: relief.textCanvas };
 
             const tex = (c, srgb) => {
