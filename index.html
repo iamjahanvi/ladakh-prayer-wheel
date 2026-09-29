@@ -58,14 +58,15 @@
             position: absolute;
             inset: 0;
             z-index: 2;
-            cursor: grab;
             touch-action: none;
             opacity: 0;
             transition: opacity 1.8s ease;
         }
 
         #webgl-container.ready { opacity: 1; }
-        #webgl-container:active { cursor: grabbing; }
+        /* Only the drums and their handles can be grabbed. */
+        #webgl-container.grabbable { cursor: grab; }
+        #webgl-container.grabbing { cursor: grabbing; }
         #webgl-container.pointing { cursor: pointer; }
 
         .noise-overlay {
@@ -633,6 +634,38 @@
 
         .loader-word.fonts + .loader-sub { opacity: 0.92; }
 
+        /* Once everything has loaded: a small plane, as if arriving in Leh, with
+           a trail behind it. The tap is also the visitor's first gesture, so
+           sound can start with it. */
+        .loader-enter {
+            all: unset;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            margin-top: 1.2rem;
+            color: var(--text-color);
+            cursor: pointer;
+            filter: drop-shadow(0 1px 3px rgba(20, 40, 80, 0.35));
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(6px);
+            transition: opacity 0.6s ease, transform 0.6s ease, visibility 0s linear 0.6s;
+        }
+        .loader-enter { width: 72px; }
+        .loader-enter svg { width: 60px; height: 36px; display: block; animation: enter-bob 2.4s ease-in-out infinite; transition: transform 0.3s ease; }
+        .loader-enter:hover svg { animation-play-state: paused; transform: translateX(4px); }
+        .loader-enter:focus-visible { outline: 1.5px solid var(--text-color); outline-offset: 2px; border-radius: 8px; }
+        /* Idling on the runway: a gentle float. */
+        @keyframes enter-bob { 50% { transform: translateY(-3px); } }
+        .loader-enter.show { opacity: 1; visibility: visible; transform: none; transition: opacity 0.6s ease, transform 0.6s ease; }
+        /* Taking off: lifted out of the loader so it can fly off to the right
+           while the loader rises away (see flyOff). */
+        .loader-enter.flying { position: fixed; margin: 0; z-index: 60; pointer-events: none; }
+        .loader-enter.flying svg { animation: none; }
+        @media (prefers-reduced-motion: reduce) { .loader-enter svg { animation: none; } }
+
         @media (prefers-reduced-motion: reduce) {
             .loader-word i b, .loader .cloud { animation: none !important; }
         }
@@ -648,6 +681,7 @@
         <div class="loader-center">
             <div class="loader-word" id="loader-word" lang="bo" aria-hidden="true"><i style="--k:0"><b>འ</b></i><i style="--k:1"><b>ཇུ</b></i><i style="--k:2"><b>་</b></i><i style="--k:3"><b>ལེ</b></i><i style="--k:4"><b>ག</b></i><i style="--k:5"><b>ས</b></i><i style="--k:6"><b>་</b></i></div>
             <span class="loader-sub" aria-hidden="true">Julley · Hello · Namaste</span>
+            <button class="loader-enter" id="loader-enter" type="button" aria-label="Walk to the wheels" title="Walk to the wheels"><svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g filter="url(#print)"><path class="trail" d="M1.5 12h4" opacity="0.35"/><path class="trail" d="M8.5 12h5" opacity="0.65"/><g transform="translate(15 0) rotate(45 12 12)"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></g></g></svg></button>
         </div>
     </div>
     <script>
@@ -715,7 +749,46 @@
                     // Reveal the scene underneath first, while the loader still covers
                     // it: the browser's one-time cost of showing it lands out of sight.
                     cb.ready();
-                    waitFrames(12, function () {
+                    // Then wait for the visitor to step in; that tap also lets the
+                    // sound begin, since browsers only play it after a gesture.
+                    var enter = document.getElementById('loader-enter');
+                    enter.classList.add('show');
+                    loader.setAttribute('aria-label', 'Julley · Hello · Namaste');
+                    function go() {
+                        enter.removeEventListener('click', go);
+                        window.removeEventListener('keydown', onKey);
+                        enter.disabled = true;
+                        if (!still) flyOff(enter);
+                        descendNow(cb, still);
+                    }
+                    function onKey(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }
+                    enter.addEventListener('click', go);
+                    window.addEventListener('keydown', onKey);
+                    return;
+                }
+                requestAnimationFrame(tick);
+            }
+            // The plane takes off: it leaves the loader (which rises away) and
+            // flies out through the right edge, climbing a little.
+            function flyOff(el) {
+                var r = el.getBoundingClientRect();
+                document.body.appendChild(el);
+                el.classList.add('flying');
+                el.style.left = r.left + 'px';
+                el.style.top = r.top + 'px';
+                // Out past the top of the right edge, nose tilted up to the climb.
+                var dx = window.innerWidth - r.left + 40, dy = -(r.top + r.height + 40);
+                var climb = Math.atan2(dy, dx) * 180 / Math.PI;
+                el.animate([
+                    { transform: 'translate(0, 0) rotate(0deg)' },
+                    { transform: 'translate(' + dx * 0.18 + 'px, ' + dy * 0.06 + 'px) rotate(' + climb * 0.6 + 'deg)', offset: 0.3 },
+                    { transform: 'translate(' + dx + 'px, ' + dy + 'px) rotate(' + climb + 'deg)' }
+                ], { duration: 1900, easing: 'cubic-bezier(0.45, 0, 0.7, 1)', fill: 'forwards' })
+                    .finished.then(function () { el.remove(); });
+            }
+            function descendNow(cb, still) {
+                {
+                    waitFrames(2, function () {
                         if (still) {
                             loader.classList.add('done');
                         } else {
@@ -731,9 +804,7 @@
                             setTimeout(function () { loader.remove(); }, 1000);
                         }, still ? 400 : 2400);
                     });
-                    return;
                 }
-                requestAnimationFrame(tick);
             }
             requestAnimationFrame(tick);
 
@@ -2332,6 +2403,29 @@
         // swells and a coasting wheel slows and fades away.
         // ---------------------------------------------------------------
         const TURN_SOUND_URL = 'assets/wheel-turn.m4a';
+        // A village morning, looping quietly underneath everything (trimmed
+        // and crossfaded into a seamless 38 s loop). Muted with the rest.
+        const AMBIENCE_URL = 'assets/village-morning.m4a';
+        const AMBIENCE_LEVEL = 0.32;
+        let ambienceStarted = false;
+        function startAmbience() {
+            if (ambienceStarted) return;
+            ambienceStarted = true;
+            fetch(AMBIENCE_URL)
+                .then(r => r.arrayBuffer())
+                .then(data => audioCtx.decodeAudioData(data))
+                .then(buf => {
+                    const src = audioCtx.createBufferSource();
+                    src.buffer = buf;
+                    src.loop = true;
+                    const gain = audioCtx.createGain();
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(AMBIENCE_LEVEL, audioCtx.currentTime + 3);
+                    src.connect(gain).connect(master);
+                    src.start();
+                })
+                .catch(err => { ambienceStarted = false; console.warn('Could not load the background sound.', err); });
+        }
         let audioCtx = null, master = null, turnBuffer = null, turnBufferLoading = false;
         let muted = storage.get('mani.muted', false);
         const soundButton = document.getElementById('sound');
@@ -2361,6 +2455,7 @@
                 master.connect(audioCtx.destination);
             }
             if (audioCtx.state === 'suspended') audioCtx.resume();
+            startAmbience();
             if (!turnBuffer && !turnBufferLoading) {
                 turnBufferLoading = true;
                 fetch(TURN_SOUND_URL)
@@ -3417,15 +3512,21 @@
             return Math.max(30, Math.abs(e.x - c.x) * 0.5 * window.innerWidth);
         }
 
-        // The wheel nearest the pointer, left to right on screen.
-        function wheelAt(clientX) {
-            let best = wheels[0], bestD = Infinity;
+        // The wheel whose drum or handles are under the point, if any; the rod
+        // below and the beam above can't be grabbed.
+        function wheelUnder(x, y) {
+            const baseY = baseGroup.position.y;
             for (const w of activeWheels()) {
-                const c = new THREE.Vector3(w.x, 0, 0).project(camera);
-                const d = Math.abs((c.x * 0.5 + 0.5) * window.innerWidth - clientX);
-                if (d < bestD) { bestD = d; best = w; }
+                const c = toScreen(wv(w.x, 0, 0)), r = wheelRadiusPx(w);
+                const top = toScreen(wv(w.x, HD / 2 + LID_H, 0)).y, bottom = toScreen(wv(w.x, -HD / 2, 0)).y;
+                if (Math.abs(x - c.x) <= r && y >= top && y <= bottom) return w;
+                // The red cross of handles, a little wider than the drum.
+                const hTop = toScreen(wv(w.x, crossTop + baseY + 0.05, 0)).y;
+                const hBottom = toScreen(wv(w.x, crossTop - ARM_T - 0.3 + baseY, 0)).y;
+                const hHalf = Math.abs(toScreen(wv(w.x + hl, 0, 0)).x - c.x);
+                if (Math.abs(x - c.x) <= hHalf && y >= hTop && y <= hBottom) return w;
             }
-            return best;
+            return null;
         }
 
         const pointers = new Map();
@@ -3446,9 +3547,12 @@
             // steps between parts instead.
             if (infoOn) { swipeFrom = { x: e.clientX, y: e.clientY }; return; }
             downAt = { x: e.clientX, y: e.clientY, t: performance.now() };
-            grabbed = wheelAt(e.clientX);
+            grabbed = wheelUnder(e.clientX, e.clientY);
+            // Touch anywhere can still swipe up or down between views.
             touchSwipe = e.pointerType === 'mouse' ? null
-                : { id: e.pointerId, x: e.clientX, y: e.clientY, decided: false, vertical: false, omega: grabbed.phys.omega };
+                : { id: e.pointerId, x: e.clientX, y: e.clientY, decided: false, vertical: false, omega: grabbed ? grabbed.phys.omega : 0 };
+            if (!grabbed) return;
+            container.classList.add('grabbing');
             const phys = grabbed.phys;
             phys.dragging = true;
             phys.radiusPx = wheelRadiusPx(grabbed);
@@ -3485,28 +3589,29 @@
                 const now = e.timeStamp; // when the movement happened, not when we got to it
                 phys.trail.push({ t: now, a: phys.target });
                 while (phys.trail.length > 2 && now - phys.trail[0].t > 100) phys.trail.shift();
-            } else if (stage === 1 && e.pointerType === 'mouse') {
-                container.classList.toggle('pointing', !!syllableAt(e.clientX, e.clientY));
+            } else if (e.pointerType === 'mouse') {
+                const pointing = stage === 1 && !!syllableAt(e.clientX, e.clientY);
+                container.classList.toggle('pointing', pointing);
+                container.classList.toggle('grabbable', !pointing && !infoOn && !!wheelUnder(e.clientX, e.clientY));
             }
         });
 
         // "Drag to rotate" follows the mouse while it's over a wheel, until the
-        // visitor has dragged one themselves; remembered on this device.
+        // visitor has dragged one; remembered for this visit only, so each
+        // new visit shows it again.
         const dragTip = document.getElementById('drag-tip');
-        let dragTaught = storage.get('mani.dragged', false);
-        function overWheel(x, y) {
-            return activeWheels().some(w => {
-                const c = toScreen(wv(w.x, 0, 0)), r = wheelRadiusPx(w);
-                const top = toScreen(wv(w.x, HD / 2 + LID_H, 0)).y, bottom = toScreen(wv(w.x, -HD / 2, 0)).y;
-                return Math.abs(x - c.x) <= r && y >= top && y <= bottom;
-            });
-        }
+        const session = {
+            get(k) { try { return sessionStorage.getItem(k) === '1'; } catch { return false; } },
+            set(k) { try { sessionStorage.setItem(k, '1'); } catch { /* private mode */ } },
+        };
+        let dragTaught = session.get('mani.dragged');
+        const overWheel = (x, y) => !!wheelUnder(x, y);
         window.addEventListener('pointermove', e => {
             if (dragTaught) return;
             // A drag of a few pixels on a wheel is enough: they've found it.
             if (grabbed && grabbed.phys.dragging && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 12) {
                 dragTaught = true;
-                storage.set('mani.dragged', true);
+                session.set('mani.dragged');
                 dragTip.classList.remove('show');
                 return;
             }
@@ -3525,6 +3630,7 @@
             }
             const wasPinch = pointers.size === 2;
             pointers.delete(e.pointerId);
+            container.classList.remove('grabbing');
             if (touchSwipe && touchSwipe.id === e.pointerId) {
                 const dy = e.clientY - touchSwipe.y, vertical = touchSwipe.vertical;
                 touchSwipe = null;
