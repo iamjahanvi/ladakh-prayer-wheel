@@ -781,6 +781,9 @@
                         window.removeEventListener('wheel', onWheel);
                         window.removeEventListener('touchstart', onTouchStart);
                         window.removeEventListener('touchend', onTouchEnd);
+                        // However it was started, the "Fly to Ladakh" pill goes too.
+                        tip.classList.remove('show');
+                        setTimeout(function () { tip.remove(); }, 400);
                         enter.disabled = true;
                         if (!still) flyOff(enter);
                         descendNow(cb, still);
@@ -814,7 +817,6 @@
                         tip.classList.add('show');
                     });
                     enter.addEventListener('pointerleave', function () { tip.classList.remove('show'); });
-                    enter.addEventListener('click', function () { tip.classList.remove('show'); setTimeout(function () { tip.remove(); }, 400); });
                     window.addEventListener('keydown', onKey);
                     return;
                 }
